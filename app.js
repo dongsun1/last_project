@@ -43,17 +43,12 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("msg", msg);
   });
 
-  socket.on("msg", (msg) => {
-    console.log(msg);
-    socket.broadcast.emit("msg", msg);
-  });
-
   socket.on("joinRoom", (roomNum) => {
-    socket.join(rooms.indexOf(roomNum));
+    socket.join(roomNum);
   });
 
-  socket.on("createRoom", (roomNum) => {
-    rooms.push(roomNum);
+  socket.on("createRoom", (room) => {
+    rooms.push(room);
   });
 
   socket.on("disconnect", function () {
