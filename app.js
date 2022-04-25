@@ -31,12 +31,32 @@ app.use(express.urlencoded({ extended: false }));
 const httpServer = http.createServer(app);
 const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
+let rooms = [];
+
 io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
+
+  io.emit("roomList", rooms);
+
   socket.on("msg", (msg) => {
     console.log(msg);
-    io.broadcast.emit("msg", msg);
+    socket.broadcast.emit("msg", msg);
   });
+
+  socket.on("msg", (msg, roomNum) => {
+    console.log(msg);
+    io.to(roomNum).broadcast.emit("msg", msg);
+  });
+
+  socket.on("joinRoom", (roomNum) => {
+    socket.join(rooms.indexOf(roomNum));
+  });
+
+  socket.on("createRoom", (roomNum) => {
+    rooms.push(roomNum);
+  });
+
+  socket.on("");
 
   socket.on("disconnect", function () {
     console.log("disconnect: ", socket.id);
