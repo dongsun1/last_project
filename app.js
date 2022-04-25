@@ -40,7 +40,8 @@ io.on("connection", (socket) => {
 
   socket.on("msg", (msg) => {
     console.log(msg);
-    socket.broadcast.emit("msg", msg);
+    const id = socket.id;
+    socket.emit("msg", { msg, id });
   });
 
   socket.on("joinRoom", (roomNum) => {
