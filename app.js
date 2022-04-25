@@ -43,9 +43,9 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("msg", msg);
   });
 
-  socket.on("msg", (msg, roomNum) => {
+  socket.on("msg", (msg) => {
     console.log(msg);
-    io.to(roomNum).broadcast.emit("msg", msg);
+    socket.broadcast.emit("msg", msg);
   });
 
   socket.on("joinRoom", (roomNum) => {
