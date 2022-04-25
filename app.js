@@ -35,7 +35,11 @@ io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
   socket.on("msg", (msg) => {
     console.log(msg);
-    io.emit("msg", msg);
+    io.broadcast.emit("msg", msg);
+  });
+
+  socket.on("disconnect", function () {
+    console.log("disconnect: ", socket.id);
   });
 });
 
