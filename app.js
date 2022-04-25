@@ -56,8 +56,6 @@ io.on("connection", (socket) => {
     rooms.push(roomNum);
   });
 
-  socket.on("");
-
   socket.on("disconnect", function () {
     console.log("disconnect: ", socket.id);
   });
