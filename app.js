@@ -29,7 +29,7 @@ app.use(requestMiddleware);
 app.use(express.urlencoded({ extended: false }));
 
 const httpServer = http.createServer(app);
-const io = SocketIO(httpServer);
+const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
