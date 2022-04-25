@@ -39,6 +39,6 @@ io.on("connection", (socket) => {
 });
 
 // 서버 열기
-app.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(port, "포트로 서버가 켜졌어요!");
 });
