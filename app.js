@@ -37,7 +37,9 @@ let rooms = [];
 io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
 
-  io.emit("roomList", rooms);
+  socket.on("roomList", () => {
+    io.emit("roomList", rooms);
+  });
 
   socket.on("main", (id) => {
     console.log(`아이디 받아오기: ${id}`);
@@ -49,10 +51,10 @@ io.on("connection", (socket) => {
     io.to(socket.roomId).emit("msg", { msg, id });
   });
 
-  socket.on("joinRoom", (socketId) => {
+  socket.on("joinRoom", (roomSocketId) => {
     console.log(`${socket.userId}님이 입장하셨습니다.`);
     for (let i = 0; i < rooms.length; i++) {
-      if (rooms[i].socketId === socketId) {
+      if (rooms[i].socketId === roomSocketId) {
         socket.join(rooms[i].socketId);
         socket.roomId = rooms[i].socketId;
         break;
