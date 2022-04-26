@@ -37,23 +37,23 @@ let rooms = [];
 io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
 
-  socket.on("roomList", () => {
-    console.log("roomList");
-    io.emit("roomList", rooms);
-  });
-
   socket.on("main", (id) => {
     console.log(`아이디 받아오기: ${id}`);
     socket.userId = id;
   });
 
-  socket.on("msg", (msg, id) => {
-    console.log(`msg: ${msg}, id: ${id}`);
-    io.to(socket.roomId).emit("msg", { msg, id });
+  socket.on("roomList", () => {
+    console.log("roomList");
+    io.emit("roomList", rooms);
+  });
+
+  socket.on("msg", (msg) => {
+    console.log(`msg: ${msg}, id: ${socket.userId}`);
+    io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
   });
 
   socket.on("joinRoom", (roomSocketId) => {
-    console.log(`${socket.userId}님이 입장하셨습니다.`);
+    console.log(`${socket.userId}님이 ${roomSocketId}에 입장하셨습니다.`);
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === roomSocketId) {
         socket.join(rooms[i].socketId);
@@ -63,11 +63,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("createRoom", (userId, roomTitle, roomPeople, password) => {
+  socket.on("createRoom", (roomTitle, roomPeople, password) => {
     const socketId = socket.id;
     const room = {
       socketId,
-      userId,
+      userId: socket.userId,
       roomTitle,
       roomPeople,
       password,
