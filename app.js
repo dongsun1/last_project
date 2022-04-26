@@ -39,8 +39,8 @@ io.on("connection", (socket) => {
   io.emit("roomList", rooms);
 
   socket.on("msg", (msg, id) => {
-    console.log(msg, id);
-    socket.userId = id;
+    console.log(`msg: ${msg}, id: ${id}`);
+    // socket.userId = id;
     socket.emit("msg", { msg, id });
   });
 
