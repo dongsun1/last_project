@@ -37,9 +37,7 @@ let rooms = [];
 io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
 
-  socket.on("roomList", () => {
-    io.emit("roomList", rooms);
-  });
+  io.emit("roomList", rooms);
 
   socket.on("main", (id) => {
     console.log(`아이디 받아오기: ${id}`);
