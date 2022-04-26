@@ -70,7 +70,15 @@ io.on("connection", (socket) => {
       password,
     };
     rooms.push(room);
-    console.log(`방 만들기: ${room}`);
+    console.log(
+      `방 만들기: ${
+        (room.socketId,
+        room.userId,
+        room.roomTitle,
+        room.roomPeople,
+        room.password)
+      }`
+    );
     socket.emit("roomData", room);
   });
 
