@@ -40,8 +40,8 @@ io.on("connection", (socket) => {
 
   socket.on("msg", (msg, id) => {
     console.log(`msg: ${msg}, id: ${id}`);
-    // socket.userId = id;
-    socket.emit("msg", { msg, id });
+    socket.userId = id;
+    io.emit("msg", { msg, id });
   });
 
   socket.on("joinRoom", (roomNum) => {
