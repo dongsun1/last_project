@@ -38,6 +38,7 @@ io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
 
   socket.on("roomList", () => {
+    console.log("roomList");
     io.emit("roomList", rooms);
   });
 
