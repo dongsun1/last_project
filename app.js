@@ -3,6 +3,7 @@ const SocketIO = require("socket.io");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const { SocketAddress } = require("net");
 const app = express();
 const port = 3000;
 
@@ -31,7 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 const httpServer = http.createServer(app);
 const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
-let rooms = [];
+let rooms = ["room 1", "room 2"];
 
 io.on("connection", (socket) => {
   console.log("connection: ", socket.id);
@@ -41,11 +42,12 @@ io.on("connection", (socket) => {
   socket.on("msg", (msg, id) => {
     console.log(`msg: ${msg}, id: ${id}`);
     socket.userId = id;
-    io.emit("msg", { msg, id });
+    io.to(rooms[socket.roomNum]).emit("msg", { msg, id });
   });
 
   socket.on("joinRoom", (roomNum) => {
-    socket.join(roomNum);
+    socket.join(rooms[roomNum]);
+    socket.roomNum = roomNum;
   });
 
   socket.on("createRoom", (room) => {
