@@ -57,6 +57,9 @@ io.on("connection", (socket) => {
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === roomSocketId) {
         if (password !== undefined && room[i].password !== password) {
+          console.log(
+            `방 비밀번호 ${rooms[i.password]}, 입력 비밀번호 ${password}`
+          );
           break;
         }
         socket.join(rooms[i].socketId);
