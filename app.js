@@ -52,16 +52,10 @@ io.on("connection", (socket) => {
     io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
   });
 
-  socket.on("joinRoom", (roomSocketId, password) => {
+  socket.on("joinRoom", (roomSocketId) => {
     console.log(`${socket.userId}님이 ${roomSocketId}에 입장하셨습니다.`);
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === roomSocketId) {
-        if (password !== undefined && room[i].password !== password) {
-          console.log(
-            `방 비밀번호 ${rooms[i.password]}, 입력 비밀번호 ${password}`
-          );
-          break;
-        }
         socket.join(rooms[i].socketId);
         socket.roomId = rooms[i].socketId;
         // 현재 인원 +1
