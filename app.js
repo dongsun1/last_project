@@ -61,6 +61,9 @@ io.on("connection", (socket) => {
         // 현재 인원 +1
         rooms[i].currentPeople += 1;
         console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
+        io.to(socket.roomId).emit("joinRoomMsg", {
+          msg: `${socket.userId}님이 입장하셨습니다.`,
+        });
         break;
       }
     }
@@ -79,6 +82,9 @@ io.on("connection", (socket) => {
         if (rooms[i].currentPeople === 0) {
           rooms.splice(i, 1);
         }
+        io.to(socket.roomId).emit("leaveRoomMsg", {
+          msg: `${socket.userId}님이 퇴장하셨습니다.`,
+        });
         break;
       }
     }
