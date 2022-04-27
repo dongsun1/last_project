@@ -58,6 +58,7 @@ io.on("connection", (socket) => {
       if (rooms[i].socketId === roomSocketId) {
         socket.join(rooms[i].socketId);
         socket.roomId = rooms[i].socketId;
+        rooms[i].currentPeople += 1;
         break;
       }
     }
@@ -66,6 +67,12 @@ io.on("connection", (socket) => {
   socket.on("leaveRoom", () => {
     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
     socket.leave(socket.roomId);
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        rooms[i].currentPeople -= 1;
+        break;
+      }
+    }
     socket.roomId = "";
   });
 
@@ -77,6 +84,7 @@ io.on("connection", (socket) => {
       roomTitle,
       roomPeople,
       password,
+      currentPeople: 0,
     };
     rooms.push(room);
     console.log(
@@ -85,7 +93,7 @@ io.on("connection", (socket) => {
     socket.emit("roomData", room);
   });
 
-  socket.on("disconnect", function () {
+  socket.on("disconnect", () => {
     console.log("disconnect: ", socket.id);
   });
 });
