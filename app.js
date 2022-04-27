@@ -58,6 +58,7 @@ io.on("connection", (socket) => {
       if (rooms[i].socketId === roomSocketId) {
         socket.join(rooms[i].socketId);
         socket.roomId = rooms[i].socketId;
+        // 현재 인원 +1
         rooms[i].currentPeople += 1;
         break;
       }
@@ -67,9 +68,15 @@ io.on("connection", (socket) => {
   socket.on("leaveRoom", () => {
     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
     socket.leave(socket.roomId);
+
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === socket.roomId) {
+        // 현재 인원 -1
         rooms[i].currentPeople -= 1;
+        // 현재 인원이 0이라면 방 삭제
+        if (rooms[i].currentPeople === 0) {
+          rooms.splice(i, 1);
+        }
         break;
       }
     }
