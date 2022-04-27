@@ -60,6 +60,7 @@ io.on("connection", (socket) => {
         socket.roomId = rooms[i].socketId;
         // 현재 인원 +1
         rooms[i].currentPeople += 1;
+        console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
         break;
       }
     }
@@ -73,6 +74,7 @@ io.on("connection", (socket) => {
       if (rooms[i].socketId === socket.roomId) {
         // 현재 인원 -1
         rooms[i].currentPeople -= 1;
+        console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
         // 현재 인원이 0이라면 방 삭제
         if (rooms[i].currentPeople === 0) {
           rooms.splice(i, 1);
