@@ -63,6 +63,12 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("leaveRoom", () => {
+    console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
+    socket.leave(socket.roomId);
+    socket.roomId = "";
+  });
+
   socket.on("createRoom", (roomTitle, roomPeople, password) => {
     const socketId = socket.id;
     const room = {
