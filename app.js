@@ -112,14 +112,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("callUser", (data) => {
-    io.to(data.userToCall).emit("hey", {
+    io.emit("hey", {
       signal: data.signalData,
       from: data.from,
     });
   });
 
   socket.on("acceptCall", (data) => {
-    io.to(data.to).emit("callAccepted", data.signal);
+    io.emit("callAccepted", data.signal);
   });
 
   socket.on("disconnect", () => {
