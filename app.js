@@ -54,6 +54,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinRoom", (roomSocketId) => {
     console.log(`${socket.userId}님이 ${roomSocketId}에 입장하셨습니다.`);
+
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === roomSocketId) {
         socket.join(rooms[i].socketId);
@@ -108,6 +109,17 @@ io.on("connection", (socket) => {
       `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
     );
     socket.emit("roomData", room);
+  });
+
+  socket.on("callUser", (data) => {
+    io.to(data.userToCall).emit("hey", {
+      signal: data.signalData,
+      from: data.from,
+    });
+  });
+
+  socket.on("acceptCall", (data) => {
+    io.to(data.to).emit("callAccepted", data.signal);
   });
 
   socket.on("disconnect", () => {
