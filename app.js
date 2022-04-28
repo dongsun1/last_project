@@ -34,7 +34,7 @@ const requestMiddleware = (req, res, next) => {
 };
 
 // 각종 미들웨어
-appH.use((req, res, next) => {
+app.use((req, res, next) => {
   if (req.secure) {
     next();
   } else {
