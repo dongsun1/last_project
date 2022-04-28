@@ -6,7 +6,6 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
-const port = 3000;
 const appH = express();
 const httpPort = 80;
 const httpsPort = 443;
@@ -57,7 +56,7 @@ app.get(
   (req, res) => {
     res.sendFile(
       __dirname +
-        "/well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
+        "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
     );
   }
 );
