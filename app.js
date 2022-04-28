@@ -168,8 +168,8 @@ io.on("connection", (socket) => {
 });
 
 // 서버 열기
-httpServer.listen(httpPort, () => {
-  console.log(httpPort, "포트로 서버가 켜졌어요!");
+httpServer.listen(3000, () => {
+  console.log(3000, "포트로 서버가 켜졌어요!");
 });
 
 // httpsServer.listen(httpsPort, () => {
