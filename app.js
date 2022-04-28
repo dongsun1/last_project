@@ -46,17 +46,16 @@ app.use((req, res, next) => {
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded());
 app.use(cookieParser());
 app.use(requestMiddleware);
 app.use(express.urlencoded({ extended: false }));
 
 app.get(
-  "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt",
+  "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt",
   (req, res) => {
     res.sendFile(
       __dirname +
-        "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
+        "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt"
     );
   }
 );
