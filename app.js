@@ -63,7 +63,7 @@ app.get(
 
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(credentials, appH);
-const io = SocketIO(httpServer, { cors: { origin: "*" } });
+const io = SocketIO(httpsServer, { cors: { origin: "*" } });
 
 let rooms = [];
 
