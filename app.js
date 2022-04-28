@@ -6,6 +6,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
+const appH = express();
 const httpPort = 80;
 const httpsPort = 443;
 
@@ -61,9 +62,9 @@ const credentials = {
 };
 
 const httpServer = http.createServer(app);
-const httpsServer = https.createServer(credentials, app);
+const httpsServer = https.createServer(credentials, appH);
 
-const io = SocketIO(httpsServer, { cors: { origin: "*" } });
+const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
 let rooms = [];
 
