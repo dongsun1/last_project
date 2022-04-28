@@ -52,19 +52,19 @@ app.get(
   }
 );
 
-const privateKey = fs.readFileSync(__dirname + "/private.key", "utf8");
-const certificate = fs.readFileSync(__dirname + "/certificate.crt", "utf8");
-const ca = fs.readFileSync(__dirname + "/ca_bundle.crt", "utf8");
-const credentials = {
-  key: privateKey,
-  cert: certificate,
-  ca: ca,
-};
+// const privateKey = fs.readFileSync(__dirname + "/private.key", "utf8");
+// const certificate = fs.readFileSync(__dirname + "/certificate.crt", "utf8");
+// const ca = fs.readFileSync(__dirname + "/ca_bundle.crt", "utf8");
+// const credentials = {
+//   key: privateKey,
+//   cert: certificate,
+//   ca: ca,
+// };
 
 const httpServer = http.createServer(app);
-const httpsServer = https.createServer(credentials, appH);
+// const httpsServer = https.createServer(credentials, appH);
 
-const io = SocketIO(httpsServer, { cors: { origin: "*" } });
+const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
 let rooms = [];
 
@@ -166,6 +166,6 @@ httpServer.listen(httpPort, () => {
   console.log(httpPort, "포트로 서버가 켜졌어요!");
 });
 
-httpsServer.listen(httpsPort, () => {
-  console.log(httpsPort, "포트로 서버가 켜졌어요!");
-});
+// httpsServer.listen(httpsPort, () => {
+//   console.log(httpsPort, "포트로 서버가 켜졌어요!");
+// });
