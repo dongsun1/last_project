@@ -5,8 +5,8 @@ const SocketIO = require("socket.io");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const app_low = express();
 const app = express();
-const appH = express();
 const httpPort = 80;
 const httpsPort = 443;
 
@@ -34,7 +34,7 @@ const requestMiddleware = (req, res, next) => {
 };
 
 // 각종 미들웨어
-app.use((req, res, next) => {
+app_low.use((req, res, next) => {
   if (req.secure) {
     next();
   } else {
@@ -60,8 +60,8 @@ app.get(
   }
 );
 
-const httpServer = http.createServer(app);
-const httpsServer = https.createServer(credentials, appH);
+const httpServer = http.createServer(app_low);
+const httpsServer = https.createServer(credentials, app);
 const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
 let rooms = [];
