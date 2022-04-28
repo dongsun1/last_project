@@ -24,17 +24,17 @@ const requestMiddleware = (req, res, next) => {
   next();
 };
 
-// 각종 미들웨어
-app.use((req, res, next) => {
-  if (req.secure) {
-    next();
-  } else {
-    const to = `https://${req.hostname}:${httpsPort}${req.url}`;
-    console.log(to);
-    res.redirect(to);
-  }
-});
+// app.use((req, res, next) => {
+//   if (req.secure) {
+//     next();
+//   } else {
+//     const to = `https://${req.hostname}:${httpsPort}${req.url}`;
+//     console.log(to);
+//     res.redirect(to);
+//   }
+// });
 
+// 각종 미들웨어
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
@@ -42,15 +42,15 @@ app.use(cookieParser());
 app.use(requestMiddleware);
 app.use(express.urlencoded({ extended: false }));
 
-app.get(
-  "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt",
-  (req, res) => {
-    res.sendFile(
-      __dirname +
-        "/well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
-    );
-  }
-);
+// app.get(
+//   "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt",
+//   (req, res) => {
+//     res.sendFile(
+//       __dirname +
+//         "/well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
+//     );
+//   }
+// );
 
 // const privateKey = fs.readFileSync(__dirname + "/private.key", "utf8");
 // const certificate = fs.readFileSync(__dirname + "/certificate.crt", "utf8");
@@ -162,7 +162,7 @@ io.on("connection", (socket) => {
 });
 
 // 서버 열기
-httpServer.listen(httpPort, () => {
+httpServer.listen(3000, () => {
   console.log(httpPort, "포트로 서버가 켜졌어요!");
 });
 
