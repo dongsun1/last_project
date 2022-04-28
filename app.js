@@ -162,10 +162,10 @@ io.on("connection", (socket) => {
 });
 
 // 서버 열기
-httpServer.listen(port, () => {
-  console.log(port, "포트로 서버가 켜졌어요!");
+httpServer.listen(httpPort, () => {
+  console.log(httpPort, "포트로 서버가 켜졌어요!");
 });
 
-httpsServer.listen(httpPort, () => {
-  console.log(httpPort, "포트로 서버가 켜졌어요!");
+httpsServer.listen(httpsPort, () => {
+  console.log(httpsPort, "포트로 서버가 켜졌어요!");
 });
