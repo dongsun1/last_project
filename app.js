@@ -34,7 +34,7 @@ app.get(
   (req, res) => {
     res.sendFile(
       __dirname +
-        "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
+        "/well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
     );
   }
 );
