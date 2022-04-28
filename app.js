@@ -60,115 +60,107 @@ app.get(
   }
 );
 
-app.get("/", (req, res) => {
-  res.send("http");
-});
-
-appH.get("/", (req, res) => {
-  res.send("https");
-});
-
-const httpServer = http.createServer(app);
+// const httpServer = http.createServer(app);
 // const httpsServer = https.createServer(credentials, appH);
-const io = SocketIO(httpServer, { cors: { origin: "*" } });
+// const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
-let rooms = [];
+// let rooms = [];
 
-io.on("connection", (socket) => {
-  console.log("connection: ", socket.id);
+// io.on("connection", (socket) => {
+//   console.log("connection: ", socket.id);
 
-  socket.on("main", (id) => {
-    console.log(`아이디 받아오기: ${id}`);
-    socket.userId = id;
-  });
+//   socket.on("main", (id) => {
+//     console.log(`아이디 받아오기: ${id}`);
+//     socket.userId = id;
+//   });
 
-  socket.on("roomList", () => {
-    console.log("roomList");
-    io.emit("roomList", rooms);
-  });
+//   socket.on("roomList", () => {
+//     console.log("roomList");
+//     io.emit("roomList", rooms);
+//   });
 
-  socket.on("msg", (msg) => {
-    console.log(`msg: ${msg}, id: ${socket.userId}`);
-    io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
-  });
+//   socket.on("msg", (msg) => {
+//     console.log(`msg: ${msg}, id: ${socket.userId}`);
+//     io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
+//   });
 
-  socket.on("joinRoom", (roomSocketId) => {
-    console.log(`${socket.userId}님이 ${roomSocketId}에 입장하셨습니다.`);
+//   socket.on("joinRoom", (roomSocketId) => {
+//     console.log(`${socket.userId}님이 ${roomSocketId}에 입장하셨습니다.`);
 
-    for (let i = 0; i < rooms.length; i++) {
-      if (rooms[i].socketId === roomSocketId) {
-        socket.join(rooms[i].socketId);
-        socket.roomId = rooms[i].socketId;
-        // 현재 인원 +1
-        rooms[i].currentPeople += 1;
-        console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
-        // 입장 문구
-        io.to(socket.roomId).emit("joinRoomMsg", {
-          msg: `${socket.userId}님이 입장하셨습니다.`,
-        });
-        break;
-      }
-    }
-  });
+//     for (let i = 0; i < rooms.length; i++) {
+//       if (rooms[i].socketId === roomSocketId) {
+//         socket.join(rooms[i].socketId);
+//         socket.roomId = rooms[i].socketId;
+//         // 현재 인원 +1
+//         rooms[i].currentPeople += 1;
+//         console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
+//         // 입장 문구
+//         io.to(socket.roomId).emit("joinRoomMsg", {
+//           msg: `${socket.userId}님이 입장하셨습니다.`,
+//         });
+//         break;
+//       }
+//     }
+//   });
 
-  socket.on("leaveRoom", () => {
-    console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
+//   socket.on("leaveRoom", () => {
+//     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
 
-    for (let i = 0; i < rooms.length; i++) {
-      if (rooms[i].socketId === socket.roomId) {
-        // 현재 인원 -1
-        rooms[i].currentPeople -= 1;
-        console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
-        // 현재 인원이 0이라면 방 삭제
-        if (rooms[i].currentPeople === 0) {
-          rooms.splice(i, 1);
-        }
-        // 퇴장 문구
-        io.to(socket.roomId).emit("leaveRoomMsg", {
-          msg: `${socket.userId}님이 퇴장하셨습니다.`,
-        });
-        break;
-      }
-    }
-    socket.leave(socket.roomId);
-    socket.roomId = "";
-  });
+//     for (let i = 0; i < rooms.length; i++) {
+//       if (rooms[i].socketId === socket.roomId) {
+//         // 현재 인원 -1
+//         rooms[i].currentPeople -= 1;
+//         console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
+//         // 현재 인원이 0이라면 방 삭제
+//         if (rooms[i].currentPeople === 0) {
+//           rooms.splice(i, 1);
+//         }
+//         // 퇴장 문구
+//         io.to(socket.roomId).emit("leaveRoomMsg", {
+//           msg: `${socket.userId}님이 퇴장하셨습니다.`,
+//         });
+//         break;
+//       }
+//     }
+//     socket.leave(socket.roomId);
+//     socket.roomId = "";
+//   });
 
-  socket.on("createRoom", (roomTitle, roomPeople, password) => {
-    const socketId = socket.id;
-    const room = {
-      socketId,
-      userId: socket.userId,
-      roomTitle,
-      roomPeople,
-      password,
-      currentPeople: 0,
-    };
-    rooms.push(room);
-    console.log(
-      `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
-    );
-    socket.emit("roomData", room);
-  });
+//   socket.on("createRoom", (roomTitle, roomPeople, password) => {
+//     const socketId = socket.id;
+//     const room = {
+//       socketId,
+//       userId: socket.userId,
+//       roomTitle,
+//       roomPeople,
+//       password,
+//       currentPeople: 0,
+//     };
+//     rooms.push(room);
+//     console.log(
+//       `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
+//     );
+//     socket.emit("roomData", room);
+//   });
 
-  socket.on("callUser", (data) => {
-    io.to(socket.roomId).emit("hey", {
-      signal: data.signalData,
-      from: data.from,
-    });
-  });
+//   socket.on("callUser", (data) => {
+//     io.to(socket.roomId).emit("hey", {
+//       signal: data.signalData,
+//       from: data.from,
+//     });
+//   });
 
-  socket.on("acceptCall", (data) => {
-    io.to(socket.roomId).emit("callAccepted", data.signal);
-  });
+//   socket.on("acceptCall", (data) => {
+//     io.to(socket.roomId).emit("callAccepted", data.signal);
+//   });
 
-  socket.on("disconnect", () => {
-    console.log("disconnect: ", socket.id);
-  });
-});
+//   socket.on("disconnect", () => {
+//     console.log("disconnect: ", socket.id);
+//   });
+// });
 
 // 서버 열기
-httpServer.listen(3000, () => {
+app.listen(3000, () => {
   console.log(3000, "포트로 서버가 켜졌어요!");
 });
 
