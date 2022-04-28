@@ -34,15 +34,15 @@ const requestMiddleware = (req, res, next) => {
 };
 
 // 각종 미들웨어
-app.use((req, res, next) => {
-  if (req.secure) {
-    next();
-  } else {
-    const to = `https://${req.hostname}:${httpsPort}${req.url}`;
-    console.log(to);
-    res.redirect(to);
-  }
-});
+// app.use((req, res, next) => {
+//   if (req.secure) {
+//     next();
+//   } else {
+//     const to = `https://${req.hostname}:${httpsPort}${req.url}`;
+//     console.log(to);
+//     res.redirect(to);
+//   }
+// });
 
 app.use(cors());
 app.use(express.json());
