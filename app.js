@@ -29,6 +29,16 @@ app.use(cookieParser());
 app.use(requestMiddleware);
 app.use(express.urlencoded({ extended: false }));
 
+app.get(
+  "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt",
+  (req, res) => {
+    res.sendFile(
+      __dirname +
+        "/.well-known/pki-validation/C30850814E6E08C0AEFA95972F1708D6.txt"
+    );
+  }
+);
+
 const httpServer = http.createServer(app);
 const io = SocketIO(httpServer, { cors: { origin: "*" } });
 
@@ -112,14 +122,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("callUser", (data) => {
-    io.emit("hey", {
+    io.to(socket.roomId).emit("hey", {
       signal: data.signalData,
       from: data.from,
     });
   });
 
   socket.on("acceptCall", (data) => {
-    io.emit("callAccepted", data.signal);
+    io.to(socket.roomId).emit("callAccepted", data.signal);
   });
 
   socket.on("disconnect", () => {
