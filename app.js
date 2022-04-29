@@ -158,14 +158,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createRoom", (data) => {
-    console.log(data.roomTitle, data.roomPeople, data.password);
+    console.log(data.roomTitle, data.roomPeople, data.roomPwd);
     const socketId = socket.id;
     const room = {
       socketId,
       userId: socket.userId,
       roomTitle: data.roomTitle,
       roomPeople: data.roomPeople,
-      password: data.password,
+      password: data.roomPwd,
       currentPeople: [],
       start: false,
     };
