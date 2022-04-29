@@ -169,6 +169,7 @@ io.on("connection", (socket) => {
       currentPeople: [],
       start: false,
       voteList: [],
+      night: false,
     };
     rooms.push(room);
     console.log(
@@ -191,7 +192,9 @@ io.on("connection", (socket) => {
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === socket.roomId) {
         console.log("voteList", rooms[i].voteList);
+        rooms[i].night ? (rooms[i].night = false) : (rooms[i].night = true);
         io.to(socket.roomId).emit("voteList", rooms[i].voteList);
+        io.to(socket.roomId).emit("night", rooms[i].night);
         rooms[i].voteList = [];
         break;
       }
