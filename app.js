@@ -3,7 +3,7 @@ const http = require("http");
 const https = require("https");
 const SocketIO = require("socket.io");
 const express = require("express");
-// const session = require("express-session");
+const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app_low = express();
@@ -20,7 +20,7 @@ const credentials = {
   ca: ca,
 };
 
-// const webRTC = require("./routers/webRTC");
+const webRTC = require("./routers/webRTC");
 
 const requestMiddleware = (req, res, next) => {
   console.log(
@@ -52,14 +52,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(requestMiddleware);
 app.use(express.urlencoded({ extended: false }));
-// app.use(
-//   session({
-//     saveUninitialized: true,
-//     resave: false,
-//     secret: "MY_SECRET",
-//   })
-// );
-// app.use("/", [webRTC]);
+app.use(
+  session({
+    saveUninitialized: true,
+    resave: false,
+    secret: "MY_SECRET",
+  })
+);
+app.use("/", [webRTC]);
 
 app.get(
   "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt",
