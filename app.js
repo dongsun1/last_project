@@ -138,7 +138,7 @@ io.on("connection", (socket) => {
   socket.on("startGame", () => {
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === socket.roomId) {
-        socket.start = true;
+        rooms[i].start = true;
         break;
       }
     }
@@ -147,7 +147,7 @@ io.on("connection", (socket) => {
   socket.on("endGame", () => {
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === socket.roomId) {
-        socket.start = false;
+        rooms[i].start = false;
         break;
       }
     }
@@ -161,7 +161,7 @@ io.on("connection", (socket) => {
       roomTitle,
       roomPeople,
       password,
-      currentPeople: [socket.userId],
+      currentPeople: [],
       start: false,
     };
     rooms.push(room);
