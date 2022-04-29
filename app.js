@@ -158,22 +158,44 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createRoom", (data) => {
-    console.log(data.roomTitle, data.roomPeople, data.roomPwd);
+    const { roomTitle, roomPeople, roomPwd } = data;
     const socketId = socket.id;
     const room = {
       socketId,
       userId: socket.userId,
-      roomTitle: data.roomTitle,
-      roomPeople: data.roomPeople,
-      password: data.roomPwd,
+      roomTitle: roomTitle,
+      roomPeople: roomPeople,
+      password: roomPwd,
       currentPeople: [],
       start: false,
+      voteList: [],
     };
     rooms.push(room);
     console.log(
       `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
     );
     socket.emit("roomData", room);
+  });
+
+  socket.on("vote", (data) => {
+    console.log("vote", JSON.stringify(data));
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        rooms[i].voteList.push(data);
+        break;
+      }
+    }
+  });
+
+  socket.on("voteList", () => {
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        console.log("voteList", rooms[i].voteList);
+        io.to(socket.roomId).emit("voteList", rooms[i].voteList);
+        rooms[i].voteList = [];
+        break;
+      }
+    }
   });
 
   socket.on("callUser", (data) => {
