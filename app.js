@@ -95,9 +95,7 @@ io.on("connection", (socket) => {
         rooms[i].currentPeople += 1;
         console.log(`현재 인원 수 ${rooms[i].currentPeople}`);
         // 입장 문구
-        io.to(socket.roomId).emit("joinRoomMsg", {
-          msg: `${socket.userId}님이 입장하셨습니다.`,
-        });
+        io.to(socket.roomId).emit("joinRoomMsg", socket.userId);
         break;
       }
     }
@@ -116,14 +114,30 @@ io.on("connection", (socket) => {
           rooms.splice(i, 1);
         }
         // 퇴장 문구
-        io.to(socket.roomId).emit("leaveRoomMsg", {
-          msg: `${socket.userId}님이 퇴장하셨습니다.`,
-        });
+        io.to(socket.roomId).emit("leaveRoomMsg", socket.userId);
         break;
       }
     }
     socket.leave(socket.roomId);
     socket.roomId = "";
+  });
+
+  socket.on("startGame", () => {
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        socket.start = true;
+        break;
+      }
+    }
+  });
+
+  socket.on("endGame", () => {
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        socket.start = false;
+        break;
+      }
+    }
   });
 
   socket.on("createRoom", (roomTitle, roomPeople, password) => {
@@ -135,6 +149,7 @@ io.on("connection", (socket) => {
       roomPeople,
       password,
       currentPeople: 0,
+      start: false,
     };
     rooms.push(room);
     console.log(
