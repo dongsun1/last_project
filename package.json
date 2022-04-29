@@ -8,6 +8,7 @@
     "http": "^0.0.1-security",
     "https": "^1.0.0",
     "nodemon": "^2.0.15",
+    "openvidu-node-client": "^2.21.0",
     "socket.io": "^4.4.1"
   }
 }
