@@ -121,13 +121,17 @@ io.on("connection", (socket) => {
         // 현재 인원이 0이라면 방 삭제
         if (rooms[i].currentPeople.length === 0) {
           rooms.splice(i, 1);
+          // 퇴장 문구
+          io.to(socket.roomId).emit("leaveRoomMsg", socket.userId);
+        } else {
+          // 퇴장 문구
+          io.to(socket.roomId).emit(
+            "leaveRoomMsg",
+            socket.userId,
+            rooms[i].currentPeople
+          );
         }
-        // 퇴장 문구
-        io.to(socket.roomId).emit(
-          "leaveRoomMsg",
-          socket.userId,
-          rooms[i].currentPeople
-        );
+
         break;
       }
     }
