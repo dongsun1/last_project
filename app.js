@@ -20,6 +20,8 @@ const credentials = {
   ca: ca,
 };
 
+const webRTC = require("./routers/webRTC");
+
 const requestMiddleware = (req, res, next) => {
   console.log(
     "[Ip address]:",
@@ -57,6 +59,7 @@ app.use(
     secret: "MY_SECRET",
   })
 );
+app.use("/", [webRTC]);
 
 app.get(
   "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt",
@@ -147,8 +150,9 @@ io.on("connection", (socket) => {
     socket.roomId = "";
   });
 
-  socket.on("timer", () => {
-    io.to(socket.roomId).emit("timer", true);
+  socket.on("timer", (timer) => {
+    timer();
+    // io.to(socket.roomId).emit("timer", true);
   });
 
   socket.on("startGame", () => {
