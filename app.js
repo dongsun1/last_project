@@ -56,10 +56,10 @@ app.use(
   session({
     saveUninitialized: true,
     resave: false,
-    secret: "MY_SECRET",
+    secret: "MAFIYANG",
   })
 );
-app.use("/", [webRTC]);
+app.use("/", webRTC);
 
 app.get(
   "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt",
