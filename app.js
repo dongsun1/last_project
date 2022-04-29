@@ -158,6 +158,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createRoom", (roomTitle, roomPeople, password) => {
+    console.log(roomTitle, roomPeople, password);
     const socketId = socket.id;
     const room = {
       socketId,
