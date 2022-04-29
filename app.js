@@ -150,9 +150,16 @@ io.on("connection", (socket) => {
     socket.roomId = "";
   });
 
-  socket.on("timer", (timer) => {
-    timer();
-    // io.to(socket.roomId).emit("timer", true);
+  socket.on("timer", (counter) => {
+    const countdown = setInterval(() => {
+      const min = parseInt(counter / 60);
+      const sec = counter % 60;
+      io.to(socket.roomId).emit("timer", { min, sec });
+      counter--;
+      if (counter < 0) {
+        clearInterval(countdown);
+      }
+    }, 1000);
   });
 
   socket.on("startGame", () => {
