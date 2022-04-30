@@ -269,9 +269,10 @@ io.on("connection", (socket) => {
 
     for (var i = 0; i < userArr.length; i++) {
       // console.log('arr', userArr[i])
-      userArr[i]["job"] = playerJob[i];
-      userArr[i]["userLife"] = "save";
+      // userArr[i]["job"] = playerJob[i];
+      // userArr[i]["userLife"] = "save";
       console.log(userArr[i]);
+      io.to(userArr[i]).emit("getJob", playerJob[i]);
     }
   });
 });
