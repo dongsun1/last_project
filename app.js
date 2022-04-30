@@ -167,6 +167,9 @@ io.on("connection", (socket) => {
       if (rooms[i].socketId === socket.roomId) {
         console.log(`${socket.roomId} 게임이 시작되었습니다.`);
         rooms[i].start = true;
+        io.to(socket.roomId).emit("startGame", {
+          msg: "게임이 시작되었습니다.",
+        });
         break;
       }
     }
