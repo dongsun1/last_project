@@ -95,6 +95,27 @@ io.on("connection", (socket) => {
     io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
   });
 
+  socket.on("createRoom", (data) => {
+    const { roomTitle, roomPeople, roomPwd } = data;
+    const socketId = socket.id;
+    const room = {
+      socketId,
+      userId: socket.userId,
+      roomTitle: roomTitle,
+      roomPeople: roomPeople,
+      password: roomPwd,
+      currentPeople: [],
+      start: false,
+      voteList: [],
+      night: false,
+    };
+    rooms.push(room);
+    console.log(
+      `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
+    );
+    socket.emit("roomData", room);
+  });
+
   socket.on("joinRoom", (roomSocketId) => {
     console.log(`${socket.userId}님이 ${roomSocketId}에 입장하셨습니다.`);
 
@@ -109,6 +130,7 @@ io.on("connection", (socket) => {
         io.to(socket.roomId).emit(
           "joinRoomMsg",
           socket.userId,
+          socket.id,
           rooms[i].currentPeople
         );
         break;
@@ -185,27 +207,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("createRoom", (data) => {
-    const { roomTitle, roomPeople, roomPwd } = data;
-    const socketId = socket.id;
-    const room = {
-      socketId,
-      userId: socket.userId,
-      roomTitle: roomTitle,
-      roomPeople: roomPeople,
-      password: roomPwd,
-      currentPeople: [],
-      start: false,
-      voteList: [],
-      night: false,
-    };
-    rooms.push(room);
-    console.log(
-      `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
-    );
-    socket.emit("roomData", room);
-  });
-
   socket.on("vote", (data) => {
     console.log("vote", JSON.stringify(data));
     for (let i = 0; i < rooms.length; i++) {
@@ -229,19 +230,45 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("callUser", (data) => {
-    io.to(socket.roomId).emit("hey", {
-      signal: data.signalData,
-      from: data.from,
-    });
-  });
+  socket.on("getJob", (userArr) => {
+    // 각 user 직업 부여
+    const job = [];
+    // 1:citizen, 2:doctor, 3:police, 4:mafia
+    switch (userArr.length) {
+      case 4:
+        job.push(1, 1, 1, 4);
+        break;
+      case 5:
+        job.push(1, 1, 1, 2, 4);
+        break;
+      case 6:
+        job.push(1, 1, 2, 3, 4, 4);
+        break;
+    }
 
-  socket.on("acceptCall", (data) => {
-    io.to(socket.roomId).emit("callAccepted", data.signal);
-  });
+    // job random 부여
+    const jobArr = job.sort(() => Math.random() - 0.5);
+    // console.log('jobArr->', jobArr);
+    const playerJob = [];
+    for (var i = 0; i < jobArr.length; i++) {
+      if (jobArr[i] == 1) {
+        playerJob.push("citizen");
+      } else if (jobArr[i] == 2) {
+        playerJob.push("doctor");
+      } else if (jobArr[i] == 3) {
+        playerJob.push("police");
+      } else if (jobArr[i] == 4) {
+        playerJob.push("mafia");
+      }
+    }
+    // console.log('1.playerJob->', playerJob)
 
-  socket.on("disconnect", () => {
-    console.log("disconnect: ", socket.id);
+    for (var i = 0; i < userArr.length; i++) {
+      // console.log('arr', userArr[i])
+      userArr[i]["job"] = playerJob[i];
+      userArr[i]["userLife"] = "save";
+      console.log(userArr[i]);
+    }
   });
 });
 
