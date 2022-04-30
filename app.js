@@ -56,7 +56,7 @@ app.use(
   session({
     saveUninitialized: true,
     resave: false,
-    secret: "MAFIYANG",
+    secret: "MY_SECRET",
   })
 );
 app.use("/", webRTC);
@@ -165,6 +165,7 @@ io.on("connection", (socket) => {
   socket.on("startGame", () => {
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === socket.roomId) {
+        console.log(`${socket.roomId} 게임이 시작되었습니다.`);
         rooms[i].start = true;
         break;
       }
@@ -174,6 +175,7 @@ io.on("connection", (socket) => {
   socket.on("endGame", () => {
     for (let i = 0; i < rooms.length; i++) {
       if (rooms[i].socketId === socket.roomId) {
+        console.log(`${socket.roomId} 게임이 종료되었습니다.`);
         rooms[i].start = false;
         break;
       }

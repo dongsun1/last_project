@@ -32,7 +32,7 @@ var mapSessions = {};
 var mapSessionNamesTokens = {};
 
 // Get token (add new user to session)
-router.post("/session", async function (req, res) {
+router.post("/api-sessions/get-token", async function (req, res) {
   if (!isLogged(req.session)) {
     req.session.destroy();
     res.status(401).send("User not logged");
