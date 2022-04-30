@@ -234,6 +234,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("getJob", (userArr) => {
+    console.log(userArr);
     // 각 user 직업 부여
     const job = [];
     // 1:citizen, 2:doctor, 3:police, 4:mafia
