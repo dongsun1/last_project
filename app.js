@@ -105,6 +105,7 @@ io.on("connection", (socket) => {
       roomPeople: roomPeople,
       password: roomPwd,
       currentPeople: [],
+      currentPeopleSocketId: [],
       start: false,
       voteList: [],
       night: false,
@@ -125,12 +126,13 @@ io.on("connection", (socket) => {
         socket.roomId = rooms[i].socketId;
         // 현재 인원 +1
         rooms[i].currentPeople.push(socket.userId);
+        rooms[i].currentPeopleSocketId.push(socket.id);
         console.log(`현재 인원 수 ${rooms[i].currentPeople.length}`);
         // 입장 문구
         io.to(socket.roomId).emit(
           "joinRoomMsg",
           socket.userId,
-          socket.id,
+          rooms[i].currentPeopleSocketId,
           rooms[i].currentPeople
         );
         break;
@@ -147,6 +149,7 @@ io.on("connection", (socket) => {
         for (let j = 0; j < rooms[i].currentPeople.length; j++) {
           if (rooms[i].currentPeople[j] === socket.userId) {
             rooms[i].currentPeople.splice(j, 1);
+            rooms[i].currentPeopleSocketId.splice(j, 1);
             break;
           }
         }
