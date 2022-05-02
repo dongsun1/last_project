@@ -210,31 +210,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("vote", (data) => {
-    console.log("vote", JSON.stringify(data));
-    for (let i = 0; i < rooms.length; i++) {
-      if (rooms[i].socketId === socket.roomId) {
-        rooms[i].voteList.push(data);
-        break;
-      }
-    }
-  });
-
-  socket.on("voteList", () => {
-    for (let i = 0; i < rooms.length; i++) {
-      if (rooms[i].socketId === socket.roomId) {
-        console.log("voteList", rooms[i].voteList);
-        rooms[i].night ? (rooms[i].night = false) : (rooms[i].night = true);
-        io.to(socket.roomId).emit("voteList", rooms[i].voteList);
-        io.to(socket.roomId).emit("night", rooms[i].night);
-        rooms[i].voteList = [];
-        break;
-      }
-    }
-  });
-
   socket.on("getJob", (userArr) => {
-    console.log(userArr);
     // 각 user 직업 부여
     const job = [];
     // 1:citizen, 2:doctor, 3:police, 4:mafia
@@ -271,8 +247,31 @@ io.on("connection", (socket) => {
       // console.log('arr', userArr[i])
       // userArr[i]["job"] = playerJob[i];
       // userArr[i]["userLife"] = "save";
-      console.log(userArr[i]);
+      console.log(`직업 부여 ${userArr[i]}: ${playerJob[i]}`);
       io.to(userArr[i]).emit("getJob", playerJob[i]);
+    }
+  });
+
+  socket.on("vote", (data) => {
+    console.log("vote", JSON.stringify(data));
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        rooms[i].voteList.push(data);
+        break;
+      }
+    }
+  });
+
+  socket.on("voteList", () => {
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].socketId === socket.roomId) {
+        console.log("voteList", rooms[i].voteList);
+        rooms[i].night ? (rooms[i].night = false) : (rooms[i].night = true);
+        io.to(socket.roomId).emit("voteList", rooms[i].voteList);
+        io.to(socket.roomId).emit("night", rooms[i].night);
+        rooms[i].voteList = [];
+        break;
+      }
     }
   });
 });
