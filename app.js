@@ -170,6 +170,7 @@ io.on("connection", (socket) => {
 
     if (roomUpdate.currentPeople.length === 0) {
       await Room.deleteOne({ roomId });
+      socket.emit("leaveRoomMsg", socket.id);
     } else {
       io.to(socket.roomId).emit(
         "leaveRoomMsg",
