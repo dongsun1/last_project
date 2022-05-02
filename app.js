@@ -150,6 +150,10 @@ io.on("connection", (socket) => {
 
     const socketId = socket.roomId;
 
+    const room = await Room.findOne({ socketId });
+    socket.leave(room.socketId);
+    socket.roomId = "";
+
     await Room.updateOne(
       { socketId },
       {
@@ -159,10 +163,6 @@ io.on("connection", (socket) => {
         },
       }
     );
-    const room = await Room.findOne({ socketId });
-
-    socket.leave(room.socketId);
-    socket.roomId = "";
 
     if (room.currentPeople.length === 0) {
       await Room.deleteOne({ socketId });
