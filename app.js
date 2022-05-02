@@ -153,7 +153,7 @@ io.on("connection", (socket) => {
 
     const roomId = socket.roomId;
 
-    await Room.updateOne(
+    await Room.update(
       { roomId },
       {
         $pull: {
