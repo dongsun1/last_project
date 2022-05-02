@@ -102,13 +102,12 @@ io.on("connection", (socket) => {
 
   socket.on("createRoom", async (data) => {
     const { roomTitle, roomPeople, roomPwd } = data;
-    const socketId = socket.id;
 
     const maxNumber = await Room.findOne().sort("-roomId");
 
     let number = 1;
     if (maxNumber) {
-      number = maxNumber.number + 1;
+      number = maxNumber.roomId + 1;
     }
 
     const room = await Room.create({
@@ -119,7 +118,7 @@ io.on("connection", (socket) => {
       password: roomPwd,
     });
     console.log(
-      `방 만들기: ${socketId}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
+      `방 만들기: ${number}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
     );
     socket.emit("roomData", room);
   });
