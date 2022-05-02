@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.userId}님이 ${socketId}에 입장하셨습니다.`);
 
     let room = await Room.find({ socketId });
-    console.log(room.socketId);
+    console.log(room);
 
     socket.join(room.socketId);
 
