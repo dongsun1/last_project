@@ -150,8 +150,6 @@ io.on("connection", (socket) => {
 
     const socketId = socket.roomId;
 
-    const room = await Room.findOne({ socketId });
-
     await Room.updateOne(
       { socketId },
       {
@@ -173,6 +171,9 @@ io.on("connection", (socket) => {
       socket.userId,
       roomUpdate.currentPeople
     );
+
+    const rooms = await Room.find({});
+    io.emit("roomList", rooms);
 
     socket.leave(roomUpdate.socketId);
     socket.roomId = "";
@@ -280,6 +281,12 @@ io.on("connection", (socket) => {
 
   socket.on("dayVoteResult", async () => {
     const clicked = await Vote.find({ socketId: socket.roomId, day: true });
+
+    const clickedArr = [];
+
+    for (let i = 0; i < clicked.length; i++) {
+      clickedArr.push(clicked[i].clicked);
+    }
   });
 
   // socket.on("voteList", () => {
