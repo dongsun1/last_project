@@ -177,7 +177,7 @@ io.on("connection", (socket) => {
 
     io.emit("roomList", rooms);
 
-    socket.leave(roomUpdate.socketId);
+    socket.leave(room.socketId);
     socket.roomId = "";
   });
 
