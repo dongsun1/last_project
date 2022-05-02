@@ -154,6 +154,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
 
     const roomId = socket.roomId;
+    socket.leave(roomId);
 
     await Room.update(
       { roomId },
@@ -176,8 +177,6 @@ io.on("connection", (socket) => {
         roomUpdate.currentPeople
       );
     }
-
-    socket.leave(roomId);
 
     const rooms = await Room.find({});
 
