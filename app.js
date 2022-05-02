@@ -104,8 +104,15 @@ io.on("connection", (socket) => {
     const { roomTitle, roomPeople, roomPwd } = data;
     const socketId = socket.id;
 
+    const maxNumber = await Room.findOne().sort("-roomId");
+
+    let number = 1;
+    if (maxNumber) {
+      number = maxNumber.number + 1;
+    }
+
     const room = await Room.create({
-      roomId: socketId,
+      roomId: number,
       userId: socket.userId,
       roomTitle,
       roomPeople,
