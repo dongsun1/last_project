@@ -105,7 +105,7 @@ io.on("connection", (socket) => {
     const socketId = socket.id;
 
     const room = await Room.create({
-      socketId,
+      roomId: socketId,
       userId: socket.userId,
       roomTitle,
       roomPeople,
@@ -117,16 +117,13 @@ io.on("connection", (socket) => {
     socket.emit("roomData", room);
   });
 
-  socket.on("joinRoom", async (socketId) => {
-    console.log(`${socket.userId}님이 ${socketId}에 입장하셨습니다.`);
+  socket.on("joinRoom", async (roomId) => {
+    console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
+    socket.join(roomId);
+    socket.roomId = roomId;
 
-    let room = await Room.findOne({ socketId });
-
-    socket.join(room.socketId);
-
-    socket.roomId = room.socketId;
     await Room.updateOne(
-      { socketId },
+      { roomId },
       {
         $push: {
           currentPeople: socket.userId,
@@ -135,7 +132,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = await Room.findOne({ socketId });
+    const room = await Room.findOne({ roomId });
 
     io.to(socket.roomId).emit(
       "joinRoomMsg",
@@ -148,11 +145,11 @@ io.on("connection", (socket) => {
   socket.on("leaveRoom", async () => {
     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
 
-    const socketId = socket.roomId;
-    socket.leave(socketId);
+    const roomId = socket.roomId;
+    socket.leave(roomId);
 
     await Room.updateOne(
-      { socketId },
+      { roomId },
       {
         $pull: {
           currentPeople: socket.userId,
@@ -161,12 +158,10 @@ io.on("connection", (socket) => {
       }
     );
 
-    const roomUpdate = await Room.findOne({ socketId });
-
-    console.log(roomUpdate.currentPeople);
+    const roomUpdate = await Room.findOne({ roomId });
 
     if (roomUpdate.currentPeople.length === 0) {
-      await Room.deleteOne({ socketId });
+      await Room.deleteOne({ roomId });
     }
 
     io.to(socket.roomId).emit(

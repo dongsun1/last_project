@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const roomSchema = mongoose.Schema({
-  socketId: {
+  roomId: {
     type: String,
     required: true,
     unique: true,
