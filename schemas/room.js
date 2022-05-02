@@ -19,12 +19,21 @@ const roomSchema = mongoose.Schema({
   password: {
     type: String,
   },
-  currentPeople: [],
-  currentPeopleSocketId: [],
+  currentPeople: {
+    type: Array,
+    default: [],
+  },
+  currentPeopleSocketId: {
+    type: Array,
+    default: [],
+  },
   start: {
     default: false,
   },
-  voteList: [],
+  voteList: {
+    type: Array,
+    default: [],
+  },
   night: {
     default: false,
   },
