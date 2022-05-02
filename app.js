@@ -20,7 +20,10 @@ const credentials = {
   ca: ca,
 };
 
+const connect = require("./schemas");
 const Room = require("./schemas/room");
+
+connect();
 
 const webRTC = require("./routers/webRTC");
 
