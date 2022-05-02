@@ -85,9 +85,9 @@ io.on("connection", (socket) => {
     socket.userId = id;
   });
 
-  socket.on("roomList", () => {
+  socket.on("roomList", async () => {
     console.log("roomList");
-    const rooms = Room.find({});
+    const rooms = await Room.find({});
     io.emit("roomList", rooms);
   });
 
@@ -96,11 +96,11 @@ io.on("connection", (socket) => {
     io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
   });
 
-  socket.on("createRoom", (data) => {
+  socket.on("createRoom", async (data) => {
     const { roomTitle, roomPeople, roomPwd } = data;
     const socketId = socket.id;
 
-    const room = Room.create({
+    const room = await Room.create({
       socketId,
       userId: socket.userId,
       roomTitle,
@@ -113,16 +113,16 @@ io.on("connection", (socket) => {
     socket.emit("roomData", room);
   });
 
-  socket.on("joinRoom", (socketId) => {
+  socket.on("joinRoom", async (socketId) => {
     console.log(`${socket.userId}님이 ${socketId}에 입장하셨습니다.`);
 
-    let room = Room.find({ socketId });
+    let room = await Room.find({ socketId });
     console.log(room.socketId);
 
     socket.join(room.socketId);
 
     socket.roomId = room.socketId;
-    Room.updateOne(
+    await Room.updateOne(
       { socketId },
       {
         $push: {
@@ -132,7 +132,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = Room.find({ socketId });
+    room = await Room.find({ socketId });
 
     io.to(socket.roomId).emit(
       "joinRoomMsg",
@@ -161,14 +161,14 @@ io.on("connection", (socket) => {
     // }
   });
 
-  socket.on("leaveRoom", () => {
+  socket.on("leaveRoom", async () => {
     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
 
     const socketId = socket.roomId;
 
-    let room = Room.find({ socketId });
+    let room = await Room.find({ socketId });
 
-    Room.updateOne(
+    await Room.updateOne(
       { socketId },
       {
         $pull: {
@@ -178,7 +178,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = Room.find({ socketId });
+    room = await Room.find({ socketId });
 
     io.to(socket.roomId).emit(
       "leaveRoomMsg",
@@ -233,12 +233,12 @@ io.on("connection", (socket) => {
     }, 1000);
   });
 
-  socket.on("startGame", () => {
+  socket.on("startGame", async () => {
     console.log(`${socket.roomId} 게임이 시작되었습니다.`);
 
     const socketId = socket.roomId;
 
-    Room.updateOne({ socketId }, { $set: { start: true } });
+    await Room.updateOne({ socketId }, { $set: { start: true } });
 
     io.to(socket.roomId).emit("startGame", {
       msg: "게임이 시작되었습니다.",
@@ -255,12 +255,12 @@ io.on("connection", (socket) => {
     // }
   });
 
-  socket.on("endGame", () => {
+  socket.on("endGame", async () => {
     console.log(`${socket.roomId} 게임이 종료되었습니다.`);
 
     const socketId = socket.roomId;
 
-    Room.updateOne({ socketId }, { $set: { start: false } });
+    await Room.updateOne({ socketId }, { $set: { start: false } });
 
     io.to(socket.roomId).emit("endGame", {
       msg: "게임이 종료되었습니다.",
