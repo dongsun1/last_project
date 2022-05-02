@@ -175,10 +175,10 @@ io.on("connection", (socket) => {
 
     const rooms = await Room.find({});
 
-    io.emit("roomList", rooms);
-
     socket.leave(room.socketId);
     socket.roomId = "";
+
+    io.emit("roomList", rooms);
   });
 
   socket.on("timer", (counter) => {
