@@ -151,8 +151,6 @@ io.on("connection", (socket) => {
     const socketId = socket.roomId;
     socket.leave(socketId);
 
-    const room = await Room.findOne({ socketId });
-
     await Room.updateOne(
       { socketId },
       {
@@ -167,6 +165,7 @@ io.on("connection", (socket) => {
 
     if (roomUpdate.currentPeople.length === 0) {
       await Room.deleteOne({ socketId });
+      io.to(socket.roomId).emit("leaveRoomMsg", socket.userId);
     } else {
       io.to(socket.roomId).emit(
         "leaveRoomMsg",
@@ -178,8 +177,6 @@ io.on("connection", (socket) => {
     const rooms = await Room.find({});
 
     io.emit("roomList", rooms);
-
-    socket.roomId = "";
   });
 
   socket.on("timer", (counter) => {
