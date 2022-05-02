@@ -163,11 +163,11 @@ io.on("connection", (socket) => {
       }
     );
 
-    if (room.currentPeople.length === 0) {
+    const roomUpdate = await Room.findOne({ socketId });
+
+    if (roomUpdate.currentPeople.length === 0) {
       await Room.deleteOne({ socketId });
     } else {
-      const roomUpdate = await Room.findOne({ socketId });
-
       io.to(socket.roomId).emit(
         "leaveRoomMsg",
         socket.userId,
