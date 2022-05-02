@@ -179,6 +179,8 @@ io.on("connection", (socket) => {
       );
     }
 
+    console.log(`현재 인원 : ${roomUpdate.currentPeople}`);
+
     const rooms = await Room.find({});
 
     io.emit("roomList", rooms);
