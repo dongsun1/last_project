@@ -150,7 +150,7 @@ io.on("connection", (socket) => {
 
     const socketId = socket.roomId;
 
-    let room = await Room.findOne({ socketId });
+    const room = await Room.findOne({ socketId });
 
     await Room.updateOne(
       { socketId },
@@ -162,19 +162,19 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = await Room.findOne({ socketId });
+    const roomUpdate = await Room.findOne({ socketId });
 
-    if (room.currentPeople.length === 0) {
+    if (roomUpdate.currentPeople.length === 0) {
       await Room.deleteOne({ socketId });
     }
 
     io.to(socket.roomId).emit(
       "leaveRoomMsg",
       socket.userId,
-      room.currentPeople
+      roomUpdate.currentPeople
     );
 
-    socket.leave(room.socketId);
+    socket.leave(roomUpdate.socketId);
     socket.roomId = "";
   });
 
@@ -251,7 +251,7 @@ io.on("connection", (socket) => {
     const room = await Room.findOne({ socketId });
 
     for (let i = 0; i < userArr.length; i++) {
-      console.log(`직업 부여 ${userArr[i]}: ${playerJob[i]}`);
+      console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
       io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
     }
   });
