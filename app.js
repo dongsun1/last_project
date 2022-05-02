@@ -163,16 +163,17 @@ io.on("connection", (socket) => {
 
     const roomUpdate = await Room.findOne({ socketId });
 
+    console.log(roomUpdate.currentPeople);
+
     if (roomUpdate.currentPeople.length === 0) {
       await Room.deleteOne({ socketId });
-      io.to(socket.roomId).emit("leaveRoomMsg", socket.userId);
-    } else {
-      io.to(socket.roomId).emit(
-        "leaveRoomMsg",
-        socket.userId,
-        roomUpdate.currentPeople
-      );
     }
+
+    io.to(socket.roomId).emit(
+      "leaveRoomMsg",
+      socket.userId,
+      roomUpdate.currentPeople
+    );
 
     const rooms = await Room.find({});
 
