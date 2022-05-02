@@ -119,8 +119,8 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", async (socketId) => {
     console.log(`${socket.userId}님이 ${socketId}에 입장하셨습니다.`);
 
-    let room = await Room.find({ socketId });
-    console.log(room);
+    let room = await Room.findOne({ socketId });
+    console.log(room.socketId);
 
     socket.join(room.socketId);
 
@@ -135,7 +135,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = await Room.find({ socketId });
+    room = await Room.findOne({ socketId });
 
     io.to(socket.roomId).emit(
       "joinRoomMsg",
@@ -169,7 +169,7 @@ io.on("connection", (socket) => {
 
     const socketId = socket.roomId;
 
-    let room = await Room.find({ socketId });
+    let room = await Room.findOne({ socketId });
 
     await Room.updateOne(
       { socketId },
@@ -181,7 +181,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = await Room.find({ socketId });
+    room = await Room.findOne({ socketId });
 
     io.to(socket.roomId).emit(
       "leaveRoomMsg",
