@@ -214,7 +214,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("getJob", (userArr) => {
+  socket.on("getJob", async (userArr) => {
     // 각 user 직업 부여
     const job = [];
     // 1:citizen, 2:doctor, 3:police, 4:mafia
@@ -245,11 +245,14 @@ io.on("connection", (socket) => {
         playerJob.push("mafia");
       }
     }
-    // console.log('1.playerJob->', playerJob)
+
+    const socketId = socket.roomId;
+
+    const room = await Room.findOne({ socketId });
 
     for (let i = 0; i < userArr.length; i++) {
       console.log(`직업 부여 ${userArr[i]}: ${playerJob[i]}`);
-      io.to(userArr[i]).emit("getJob", playerJob[i]);
+      io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
     }
   });
 
