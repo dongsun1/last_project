@@ -8,13 +8,15 @@ const roomSchema = mongoose.Schema({
   },
   userId: {
     type: String,
+    required: true,
   },
   roomTitle: {
     type: String,
     required: true,
   },
   roomPeople: {
-    type: String,
+    type: Number,
+    required: true,
   },
   password: {
     type: String,
@@ -28,6 +30,7 @@ const roomSchema = mongoose.Schema({
     default: [],
   },
   start: {
+    type: Boolean,
     default: false,
   },
   voteList: {
@@ -35,6 +38,7 @@ const roomSchema = mongoose.Schema({
     default: [],
   },
   night: {
+    type: Boolean,
     default: false,
   },
 });

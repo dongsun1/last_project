@@ -117,9 +117,11 @@ io.on("connection", (socket) => {
       roomPeople,
       password: roomPwd,
     });
+
     console.log(
       `방 만들기: ${number}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
     );
+
     socket.emit("roomData", room);
   });
 
@@ -170,7 +172,7 @@ io.on("connection", (socket) => {
     } else {
       io.to(socket.roomId).emit(
         "leaveRoomMsg",
-        socket.userId,
+        socket.id,
         roomUpdate.currentPeople
       );
     }
