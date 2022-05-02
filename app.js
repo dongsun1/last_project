@@ -21,6 +21,7 @@ const credentials = {
 };
 
 const Room = require("./schemas/room");
+
 const webRTC = require("./routers/webRTC");
 
 const requestMiddleware = (req, res, next) => {
@@ -84,9 +85,9 @@ io.on("connection", (socket) => {
     socket.userId = id;
   });
 
-  socket.on("roomList", async () => {
+  socket.on("roomList", () => {
     console.log("roomList");
-    const rooms = await Room.find({});
+    const rooms = Room.find({});
     io.emit("roomList", rooms);
   });
 
@@ -95,33 +96,33 @@ io.on("connection", (socket) => {
     io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
   });
 
-  socket.on("createRoom", async (data) => {
+  socket.on("createRoom", (data) => {
     const { roomTitle, roomPeople, roomPwd } = data;
     const socketId = socket.id;
-    const room = {
+
+    const room = Room.create({
       socketId,
       userId: socket.userId,
-      roomTitle: roomTitle,
-      roomPeople: roomPeople,
+      roomTitle,
+      roomPeople,
       password: roomPwd,
-    };
-    await Room.create(room);
+    });
     console.log(
-      `방 만들기: ${room.socketId}, ${room.userId}, ${room.roomTitle}, ${room.roomPeople}, ${room.password}`
+      `방 만들기: ${socketId}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
     );
     socket.emit("roomData", room);
   });
 
-  socket.on("joinRoom", async (socketId) => {
+  socket.on("joinRoom", (socketId) => {
     console.log(`${socket.userId}님이 ${socketId}에 입장하셨습니다.`);
 
-    let room = await Room.find({ socketId });
+    let room = Room.find({ socketId });
     console.log(room.socketId);
 
     socket.join(room.socketId);
 
     socket.roomId = room.socketId;
-    await Room.updateOne(
+    Room.updateOne(
       { socketId },
       {
         $push: {
@@ -131,7 +132,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = await Room.find({ socketId });
+    room = Room.find({ socketId });
 
     io.to(socket.roomId).emit(
       "joinRoomMsg",
@@ -160,14 +161,14 @@ io.on("connection", (socket) => {
     // }
   });
 
-  socket.on("leaveRoom", async () => {
+  socket.on("leaveRoom", () => {
     console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
 
     const socketId = socket.roomId;
 
-    let room = await Room.find({ socketId });
+    let room = Room.find({ socketId });
 
-    await Room.updateOne(
+    Room.updateOne(
       { socketId },
       {
         $pull: {
@@ -177,7 +178,7 @@ io.on("connection", (socket) => {
       }
     );
 
-    room = await Room.find({ socketId });
+    room = Room.find({ socketId });
 
     io.to(socket.roomId).emit(
       "leaveRoomMsg",
@@ -232,12 +233,12 @@ io.on("connection", (socket) => {
     }, 1000);
   });
 
-  socket.on("startGame", async () => {
+  socket.on("startGame", () => {
     console.log(`${socket.roomId} 게임이 시작되었습니다.`);
 
     const socketId = socket.roomId;
 
-    await Room.updateOne({ socketId }, { $set: { start: true } });
+    Room.updateOne({ socketId }, { $set: { start: true } });
 
     io.to(socket.roomId).emit("startGame", {
       msg: "게임이 시작되었습니다.",
@@ -254,12 +255,12 @@ io.on("connection", (socket) => {
     // }
   });
 
-  socket.on("endGame", async () => {
+  socket.on("endGame", () => {
     console.log(`${socket.roomId} 게임이 종료되었습니다.`);
 
     const socketId = socket.roomId;
 
-    await Room.updateOne({ socketId }, { $set: { start: false } });
+    Room.updateOne({ socketId }, { $set: { start: false } });
 
     io.to(socket.roomId).emit("endGame", {
       msg: "게임이 종료되었습니다.",
