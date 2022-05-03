@@ -265,6 +265,7 @@ io.on("connection", (socket) => {
       io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
       await Job.create({
         roomId,
+        userSocketId: userArr[i],
         userId: room.currentPeople[i],
         userJop: playerJob[i],
       });
@@ -287,12 +288,12 @@ io.on("connection", (socket) => {
     const roomId = socket.roomId;
 
     await Vote.deleteMany({ roomId, day: false });
-    const clicked = await Vote.find({ roomId, day: true });
+    const votes = await Vote.find({ roomId, day: true });
 
     const clickedArr = [];
 
-    for (let i = 0; i < clicked.length; i++) {
-      clickedArr.push(clicked[i].clickedId);
+    for (let i = 0; i < votes.length; i++) {
+      clickedArr.push(votes[i].clickedId);
     }
 
     const voteResult = getSortedArr(clickedArr);
@@ -334,17 +335,43 @@ io.on("connection", (socket) => {
     const roomId = socket.roomId;
 
     await Vote.deleteMany({ roomId, day: true });
-    const clicked = await Vote.find({ roomId, day: false });
+    const votes = await Vote.find({ roomId, day: false });
 
-    for (let i = 0; i < clicked.length; i++) {
-      if (clicked[i].clickerJob === "mafia") {
+    for (let i = 0; i < votes.length; i++) {
+      // 마피아
+      if (votes[i].clickerJob === "mafia") {
         await Job.updateOne(
-          { roomId, userId: clicked[i].clickedId },
+          { roomId, userId: votes[i].clickedId },
           { $set: { save: false } }
+        );
+      }
+      // 경찰
+      if (votes[i].clickerJob === "police") {
+        const clickedJob = await Job.findOne({
+          roomId,
+          userId: votes[i].clickedId,
+        });
+        console.log(`경찰이 지목한 사람의 직업은 ${clickedJob.userJob}`);
+        // io.to().emit("police", clickedJob.userJob);
+      }
+    }
+
+    // 의사
+    for (let i = 0; i < votes.length; i++) {
+      if (votes[i].clickerJob === "doctor") {
+        await Job.updateOne(
+          { roomId, userId: votes[i].clickedId },
+          { $set: { save: true } }
         );
       }
     }
 
+    // 투표 결과
+    const room = await Job.find({ roomId });
+    // io.to(roomId).emit("nightVoteResult", room);
+    io.to(roomId).emit("nightVoteResult");
+
+    // 게임 끝났는지 체크
     const endGame = await Job.find({ roomId });
     const result = endGameCheck(endGame);
 

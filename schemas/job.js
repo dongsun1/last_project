@@ -5,6 +5,10 @@ const jobSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  userSocketId: {
+    type: String,
+    required: true,
+  },
   userId: {
     type: String,
     required: true,
