@@ -367,8 +367,8 @@ io.on("connection", (socket) => {
           { roomId, userId: votes[i].clickedId },
           { $set: { save: true } }
         );
+        console.log(`${votes[i].clickedId}님이 의사에 의해 치료되었습니다.`);
       }
-      console.log(`${votes[i].clickedId}님이 의사에 의해 치료되었습니다.`);
     }
 
     // 투표 결과
