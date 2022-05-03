@@ -285,36 +285,40 @@ io.on("connection", (socket) => {
       clickedArr.push(clicked[i].clickedId);
     }
 
-    const clickedArrNum = [];
-
-    for (let i = 0; i < clicked.length; i++) {
-      let num = 0;
-      for (let j = 0; j < clicked.length; j++) {
-        if (clickedArr[i] === clickedArr[j]) {
-          num++;
-        }
+    function getSortedArr(array) {
+      // 1. 출연 빈도 구하기
+      const counts = array.reduce((pv, cv) => {
+        pv[cv] = (pv[cv] || 0) + 1;
+        return pv;
+      }, {});
+      // 2. 요소와 개수를 표현하는 배열 생성 => [ [요소: 개수], [요소: 개수], ...]
+      const result = [];
+      for (let key in counts) {
+        result.push([key, counts[key]]);
       }
-      clickedArrNum.push(num);
+      // 3. 출현 빈도별 정리하기
+      result.sort((first, second) => {
+        // 정렬 순서 바꾸려면 return first[1] - second[1];
+        return second[1] - first[1];
+      });
+      return result;
     }
-
-    const maxIndex = clickedArrNum.indexOf(Math.max(...clickedArrNum));
-    const max = Math.max(...clickedArrNum);
-    clickedArrNum[maxIndex] = 0;
-    const max2 = Math.max(...clickedArrNum);
-
-    if (max === max2) {
-      io.to(socket.roomId).emit("dayVoteResult", { id: "아무도 안죽음" });
+    
+    const voteResult = getSortedArr(clickedArr);
+    
+    if(voteResult[0][1] === voteResult[1][1]){
+      socket.emit("dayVoteResult", { id: "아무도 안죽음" });
       console.log(`아무도 안죽음`);
-    } else {
-      io.to(socket.roomId).emit("dayVoteResult", { id: clickedArr[maxIndex] });
-      console.log(`${clickedArr[maxIndex]} 죽음`);
+    }else {
+      socket.emit("dayVoteResult", { id: voteResult[0][0] });
+      console.log(`${voteResult[0][0]} 죽음`);
     }
 
     const roomId = socket.roomId;
 
     await Vote.deleteMany({ roomId, day: true });
     await Job.updateOne(
-      { roomId, userId: clickedArr[maxIndex] },
+      { roomId, userId: voteResult[0][0] },
       { $set: { save: false } }
     );
   });
@@ -326,10 +330,9 @@ io.on("connection", (socket) => {
 
     for (let i = 0; i < clicked.length; i++) {
       if (clicked[i].clickerJob === "mafia") {
-        await Job.updateOne(
-          { roomId, userId: clicked[i].clickedId },
-          { $set: { save: false } }
-        );
+        for (let j = 0; j < clicked.length; j++){
+          if (clicked[i])
+        }
       }
     }
   });
