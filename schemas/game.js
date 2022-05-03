@@ -1,26 +1,23 @@
 const mongoose = require("mongoose");
 
-const voteSchema = mongoose.Schema({
+const gameSchema = mongoose.Schema({
   roomId: {
     type: Number,
     required: true,
   },
-  clickerJob: {
+  userId: {
     type: String,
     required: true,
   },
-  clickerId: {
+  userJop: {
     type: String,
     required: true,
   },
-  clickedId: {
-    type: String,
-    required: true,
-  },
-  day: {
+  save: {
     type: Boolean,
     required: true,
+    default: true,
   },
 });
 
-module.exports = mongoose.model("Vote", voteSchema);
+module.exports = mongoose.model("Game", gameSchema);

@@ -23,6 +23,7 @@ const credentials = {
 const connect = require("./schemas");
 const Room = require("./schemas/room");
 const Vote = require("./schemas/vote");
+const Game = require("./schemas/game");
 
 connect();
 
@@ -255,7 +256,7 @@ io.on("connection", (socket) => {
     for (let i = 0; i < userArr.length; i++) {
       console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
       io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
-    }
+      await Game.create({roomId, userId:room.currentPeople[i], userJop:playerJob[i]});
   });
 
   socket.on("vote", async (data) => {
