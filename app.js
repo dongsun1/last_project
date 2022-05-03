@@ -285,25 +285,6 @@ io.on("connection", (socket) => {
       clickedArr.push(clicked[i].clickedId);
     }
 
-    function getSortedArr(array) {
-      // 1. 출연 빈도 구하기
-      const counts = array.reduce((pv, cv) => {
-        pv[cv] = (pv[cv] || 0) + 1;
-        return pv;
-      }, {});
-      // 2. 요소와 개수를 표현하는 배열 생성 => [ [요소: 개수], [요소: 개수], ...]
-      const result = [];
-      for (let key in counts) {
-        result.push([key, counts[key]]);
-      }
-      // 3. 출현 빈도별 정리하기
-      result.sort((first, second) => {
-        // 정렬 순서 바꾸려면 return first[1] - second[1];
-        return second[1] - first[1];
-      });
-      return result;
-    }
-
     const voteResult = getSortedArr(clickedArr);
 
     if (voteResult.length !== 1) {
@@ -321,7 +302,6 @@ io.on("connection", (socket) => {
 
     const roomId = socket.roomId;
 
-    await Vote.deleteMany({ roomId, day: true });
     await Job.updateOne(
       { roomId, userId: voteResult[0][0] },
       { $set: { save: false } }
@@ -331,6 +311,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("nightVoteResult", async () => {
+    await Vote.deleteMany({ roomId, day: true });
     const clicked = await Vote.find({ roomId: socket.roomId, day: false });
 
     const roomId = socket.roomId;
@@ -366,3 +347,22 @@ httpServer.listen(httpPort, () => {
 httpsServer.listen(httpsPort, () => {
   console.log(httpsPort, "포트로 서버가 켜졌어요!");
 });
+
+function getSortedArr(array) {
+  // 1. 출연 빈도 구하기
+  const counts = array.reduce((pv, cv) => {
+    pv[cv] = (pv[cv] || 0) + 1;
+    return pv;
+  }, {});
+  // 2. 요소와 개수를 표현하는 배열 생성 => [ [요소: 개수], [요소: 개수], ...]
+  const result = [];
+  for (let key in counts) {
+    result.push([key, counts[key]]);
+  }
+  // 3. 출현 빈도별 정리하기
+  result.sort((first, second) => {
+    // 정렬 순서 바꾸려면 return first[1] - second[1];
+    return second[1] - first[1];
+  });
+  return result;
+}
