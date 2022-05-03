@@ -330,6 +330,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("nightVoteResult", async () => {
+    console.log(`nightVoteResult`);
     const roomId = socket.roomId;
 
     await Vote.deleteMany({ roomId, day: true });
@@ -345,10 +346,10 @@ io.on("connection", (socket) => {
     }
 
     const endGame = await Job.find({ roomId });
-
     const result = endGameCheck(endGame);
 
     if (result) {
+      console.log(`${roomId}방 게임이 종료되었습니다.`);
       socket.emit("endGame", {
         msg: "게임이 종료되었습니다.",
       });
