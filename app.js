@@ -219,7 +219,7 @@ io.on("connection", (socket) => {
 
     await Room.updateOne({ roomId }, { $set: { start: false } });
 
-    io.to(socket.roomId).emit("endGame", {
+    socket.emit("endGame", {
       msg: "게임이 종료되었습니다.",
     });
   });
