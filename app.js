@@ -306,9 +306,14 @@ io.on("connection", (socket) => {
 
     const voteResult = getSortedArr(clickedArr);
 
-    if (voteResult[0][1] === voteResult[1][1]) {
-      socket.emit("dayVoteResult", { id: "아무도 안죽음" });
-      console.log(`아무도 안죽음`);
+    if (voteResult.length !== 1) {
+      if (voteResult[0][1] === voteResult[1][1]) {
+        socket.emit("dayVoteResult", { id: "아무도 안죽음" });
+        console.log(`아무도 안죽음`);
+      } else {
+        socket.emit("dayVoteResult", { id: voteResult[0][0] });
+        console.log(`${voteResult[0][0]} 죽음`);
+      }
     } else {
       socket.emit("dayVoteResult", { id: voteResult[0][0] });
       console.log(`${voteResult[0][0]} 죽음`);
@@ -321,6 +326,8 @@ io.on("connection", (socket) => {
       { roomId, userId: voteResult[0][0] },
       { $set: { save: false } }
     );
+
+    const endGameCheck = await Job.find({ roomId });
   });
 
   socket.on("nightVoteResult", async () => {
