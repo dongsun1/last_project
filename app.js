@@ -134,7 +134,7 @@ io.on("connection", (socket) => {
       { roomId },
       {
         $push: {
-          currentPeople: { userId: socket.userId, save: true },
+          currentPeople: socket.userId,
           currentPeopleSocketId: socket.id,
         },
       }
@@ -160,7 +160,7 @@ io.on("connection", (socket) => {
       { roomId },
       {
         $pull: {
-          currentPeople: { userId: socket.userId },
+          currentPeople: socket.userId,
           currentPeopleSocketId: socket.id,
         },
       }
@@ -304,7 +304,6 @@ io.on("connection", (socket) => {
 
     const roomId = socket.roomId;
 
-    // await Room.updateOne({ roomId },{$set:{currentPeople.}});
     await Vote.deleteMany({ roomId, day: true });
   });
 
