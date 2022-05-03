@@ -325,6 +325,7 @@ io.on("connection", (socket) => {
       socket.emit("endGame", {
         msg: "게임이 종료되었습니다.",
       });
+      await Job.deleteMany({ roomId });
     }
   });
 
@@ -337,10 +338,9 @@ io.on("connection", (socket) => {
     for (let i = 0; i < clicked.length; i++) {
       if (clicked[i].clickerJob === "mafia") {
         await Job.updateOne(
-          { roomId, userId: socket.userId },
+          { roomId, userId: clicked[i].clickedId },
           { $set: { save: false } }
         );
-        clicked[i].clickedId;
       }
     }
 
@@ -352,6 +352,7 @@ io.on("connection", (socket) => {
       socket.emit("endGame", {
         msg: "게임이 종료되었습니다.",
       });
+      await Job.deleteMany({ roomId });
     }
   });
 });
