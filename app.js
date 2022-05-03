@@ -23,7 +23,7 @@ const credentials = {
 const connect = require("./schemas");
 const Room = require("./schemas/room");
 const Vote = require("./schemas/vote");
-const Game = require("./schemas/game");
+const Job = require("./schemas/job");
 
 connect();
 
@@ -256,7 +256,7 @@ io.on("connection", (socket) => {
     for (let i = 0; i < userArr.length; i++) {
       console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
       io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
-      await Game.create({
+      await Job.create({
         roomId,
         userId: room.currentPeople[i],
         userJop: playerJob[i],
@@ -311,10 +311,26 @@ io.on("connection", (socket) => {
     const roomId = socket.roomId;
 
     await Vote.deleteMany({ roomId, day: true });
+    await Job.updateOne(
+      { roomId, userId: clickedArr[maxIndex] },
+      { $set: { save: false } }
+    );
+    console.log(`${clickedArr[maxIndex]} 죽음`);
   });
 
   socket.on("nightVoteResult", async () => {
     const clicked = await Vote.find({ roomId: socket.roomId, day: false });
+
+    const roomId = socket.roomId;
+
+    for (let i = 0; i < clicked.length; i++) {
+      if (clicked[i].clickerJob === "mafia") {
+        await Job.updateOne(
+          { roomId, userId: clicked[i].clickedId },
+          { $set: {} }
+        );
+      }
+    }
   });
 
   // socket.on("voteList", () => {

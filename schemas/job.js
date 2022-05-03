@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const gameSchema = mongoose.Schema({
+const jobSchema = mongoose.Schema({
   roomId: {
     type: Number,
     required: true,
@@ -20,4 +20,4 @@ const gameSchema = mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Game", gameSchema);
+module.exports = mongoose.model("Job", jobSchema);
