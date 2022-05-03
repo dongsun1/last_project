@@ -134,7 +134,7 @@ io.on("connection", (socket) => {
       { roomId },
       {
         $push: {
-          currentPeople: socket.userId,
+          currentPeople: { userId: socket.userId, save: true },
           currentPeopleSocketId: socket.id,
         },
       }
@@ -160,7 +160,7 @@ io.on("connection", (socket) => {
       { roomId },
       {
         $pull: {
-          currentPeople: socket.userId,
+          currentPeople: { userId: socket.userId },
           currentPeopleSocketId: socket.id,
         },
       }
@@ -172,11 +172,7 @@ io.on("connection", (socket) => {
       await Room.deleteOne({ roomId });
       socket.emit("leaveRoomMsg", socket.id);
     } else {
-      io.to(socket.roomId).emit(
-        "leaveRoomMsg",
-        socket.id,
-        roomUpdate.currentPeople
-      );
+      io.to(socket.roomId).emit("leaveRoomMsg", socket.id, socket.userId);
     }
 
     const rooms = await Room.find({});
@@ -262,27 +258,15 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("dayVote", async (data) => {
-    console.log("dayVote", JSON.stringify(data));
+  socket.on("vote", async (data) => {
+    console.log("vote", JSON.stringify(data));
 
     await Vote.create({
       roomId: socket.roomId,
       clickerJob: data.clickerJob,
       clickerId: data.clickerId,
       clickedId: data.clickedId,
-      day: true,
-    });
-  });
-
-  socket.on("nightVote", async (data) => {
-    console.log("nightVote", JSON.stringify(data));
-
-    await Vote.create({
-      roomId: socket.roomId,
-      clickerJob: data.clickerJob,
-      clickerId: data.clickerId,
-      clickedId: data.clickedId,
-      day: false,
+      day: data.day,
     });
   });
 
@@ -317,6 +301,15 @@ io.on("connection", (socket) => {
     } else {
       io.to(socket.roomId).emit("dayVoteResult", { id: clickedArr[maxIndex] });
     }
+
+    const roomId = socket.roomId;
+
+    // await Room.updateOne({ roomId },{$set:{currentPeople.}});
+    await Vote.deleteMany({ roomId, day: true });
+  });
+
+  socket.on("nightVoteResult", async () => {
+    const clicked = await Vote.find({ roomId: socket.roomId, day: false });
   });
 
   // socket.on("voteList", () => {
