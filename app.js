@@ -282,7 +282,7 @@ io.on("connection", (socket) => {
     const clickedArr = [];
 
     for (let i = 0; i < clicked.length; i++) {
-      clickedArr.push(clicked[i].clickerId);
+      clickedArr.push(clicked[i].clickedId);
     }
 
     const clickedArrNum = [];
@@ -304,8 +304,10 @@ io.on("connection", (socket) => {
 
     if (max === max2) {
       io.to(socket.roomId).emit("dayVoteResult", { id: "아무도 안죽음" });
+      console.log(`아무도 안죽음`);
     } else {
       io.to(socket.roomId).emit("dayVoteResult", { id: clickedArr[maxIndex] });
+      console.log(`${clickedArr[maxIndex]} 죽음`);
     }
 
     const roomId = socket.roomId;
@@ -315,7 +317,6 @@ io.on("connection", (socket) => {
       { roomId, userId: clickedArr[maxIndex] },
       { $set: { save: false } }
     );
-    console.log(`${clickedArr[maxIndex]} 죽음`);
   });
 
   socket.on("nightVoteResult", async () => {
@@ -327,7 +328,7 @@ io.on("connection", (socket) => {
       if (clicked[i].clickerJob === "mafia") {
         await Job.updateOne(
           { roomId, userId: clicked[i].clickedId },
-          { $set: {} }
+          { $set: { save: false } }
         );
       }
     }
