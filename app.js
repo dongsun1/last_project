@@ -1,6 +1,10 @@
 const fs = require("fs");
 const http = require("http");
 const https = require("https");
+const bodyParser = require("body-parser");
+const morgan = require("morgan");
+const winston = require("./config/winston");
+const helmet = require("helmet");
 const SocketIO = require("socket.io");
 const express = require("express");
 const session = require("express-session");
@@ -55,6 +59,9 @@ app_low.use((req, res, next) => {
 });
 
 app.use(cors());
+app.use(helmet());
+app.use(bodyParser.json());
+app.use(morgan("tiny"));
 app.use(express.json());
 app.use(cookieParser());
 app.use(requestMiddleware);
@@ -290,6 +297,8 @@ io.on("connection", (socket) => {
 
     const voteResult = getSortedArr(clickedArr);
 
+    console.log(voteResult);
+
     if (voteResult.length !== 1) {
       if (voteResult[0][1] === voteResult[1][1]) {
         socket.emit("dayVoteResult", { id: "아무도 안죽음" });
@@ -325,6 +334,16 @@ io.on("connection", (socket) => {
     await Vote.deleteMany({ roomId, day: true });
     const clicked = await Vote.find({ roomId, day: false });
 
+    for (let i = 0; i < clicked.length; i++) {
+      if (clicked[i].clickerJob === "mafia") {
+        await Job.updateOne(
+          { roomId, userId: socket.userId },
+          { $set: { save: false } }
+        );
+        clicked[i].clickedId;
+      }
+    }
+
     const endGame = await Job.find({ roomId });
 
     const result = endGameCheck(endGame);
@@ -339,11 +358,11 @@ io.on("connection", (socket) => {
 
 // 서버 열기
 httpServer.listen(httpPort, () => {
-  console.log(httpPort, "포트로 서버가 켜졌어요!");
+  winston.info(`${httpPort}, "포트로 서버가 켜졌어요!`);
 });
 
 httpsServer.listen(httpsPort, () => {
-  console.log(httpsPort, "포트로 서버가 켜졌어요!");
+  winston.info(`${httpsPort}, "포트로 서버가 켜졌어요!`);
 });
 
 function getSortedArr(array) {
