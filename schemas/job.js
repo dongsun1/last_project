@@ -13,7 +13,7 @@ const jobSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  userJop: {
+  userJob: {
     type: String,
     required: true,
   },

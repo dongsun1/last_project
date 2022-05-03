@@ -267,7 +267,7 @@ io.on("connection", (socket) => {
         roomId,
         userSocketId: userArr[i],
         userId: room.currentPeople[i],
-        userJop: playerJob[i],
+        userJob: playerJob[i],
       });
     }
   });
@@ -277,6 +277,7 @@ io.on("connection", (socket) => {
 
     await Vote.create({
       roomId: socket.roomId,
+      userSocketId: socket.id,
       clickerJob: data.clickerJob,
       clickerId: data.clickerId,
       clickedId: data.clickedId,
@@ -344,6 +345,7 @@ io.on("connection", (socket) => {
           { roomId, userId: votes[i].clickedId },
           { $set: { save: false } }
         );
+        console.log(`${votes[i].clickedId}님이 마피아에 의해 살해당했습니다.`);
       }
       // 경찰
       if (votes[i].clickerJob === "police") {
@@ -351,8 +353,10 @@ io.on("connection", (socket) => {
           roomId,
           userId: votes[i].clickedId,
         });
-        console.log(`경찰이 지목한 사람의 직업은 ${clickedJob.userJob}`);
-        // io.to().emit("police", clickedJob.userJob);
+        console.log(
+          `경찰이 지목한 사람의 직업은 ${votes[i].clickedId}: ${clickedJob.userJob}입니다.`
+        );
+        io.to(votes[i].userSocketId).emit("police", clickedJob.userJob);
       }
     }
 
@@ -364,12 +368,13 @@ io.on("connection", (socket) => {
           { $set: { save: true } }
         );
       }
+      console.log(`${votes[i].clickedId}님이 의사에 의해 치료되었습니다.`);
     }
 
     // 투표 결과
     const room = await Job.find({ roomId });
     // io.to(roomId).emit("nightVoteResult", room);
-    io.to(roomId).emit("nightVoteResult");
+    socket.emit("nightVoteResult");
 
     // 게임 끝났는지 체크
     const endGame = await Job.find({ roomId });

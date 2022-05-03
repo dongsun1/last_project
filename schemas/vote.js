@@ -5,6 +5,10 @@ const voteSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  userSocketId: {
+    type: String,
+    required: true,
+  },
   clickerJob: {
     type: String,
     required: true,
