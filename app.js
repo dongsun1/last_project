@@ -303,13 +303,13 @@ io.on("connection", (socket) => {
       });
       return result;
     }
-    
+
     const voteResult = getSortedArr(clickedArr);
-    
-    if(voteResult[0][1] === voteResult[1][1]){
+
+    if (voteResult[0][1] === voteResult[1][1]) {
       socket.emit("dayVoteResult", { id: "아무도 안죽음" });
       console.log(`아무도 안죽음`);
-    }else {
+    } else {
       socket.emit("dayVoteResult", { id: voteResult[0][0] });
       console.log(`${voteResult[0][0]} 죽음`);
     }
@@ -328,13 +328,13 @@ io.on("connection", (socket) => {
 
     const roomId = socket.roomId;
 
-    for (let i = 0; i < clicked.length; i++) {
-      if (clicked[i].clickerJob === "mafia") {
-        for (let j = 0; j < clicked.length; j++){
-          if (clicked[i])
-        }
-      }
-    }
+    // for (let i = 0; i < clicked.length; i++) {
+    //   if (clicked[i].clickerJob === "mafia") {
+    //     for (let j = 0; j < clicked.length; j++){
+    //       if (clicked[i])
+    //     }
+    //   }
+    // }
   });
 
   // socket.on("voteList", () => {
