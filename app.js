@@ -156,7 +156,7 @@ io.on("connection", (socket) => {
     const roomId = socket.roomId;
     socket.leave(roomId);
 
-    await Room.update(
+    await Room.updateOne(
       { roomId },
       {
         $pull: {
@@ -179,8 +179,6 @@ io.on("connection", (socket) => {
       );
     }
 
-    console.log(`현재 인원 : ${roomUpdate.currentPeople}`);
-
     const rooms = await Room.find({});
 
     io.emit("roomList", rooms);
@@ -201,9 +199,9 @@ io.on("connection", (socket) => {
   socket.on("startGame", async () => {
     console.log(`${socket.roomId} 게임이 시작되었습니다.`);
 
-    const socketId = socket.roomId;
+    const roomId = socket.roomId;
 
-    await Room.updateOne({ socketId }, { $set: { start: true } });
+    await Room.updateOne({ roomId }, { $set: { start: true } });
 
     io.to(socket.roomId).emit("startGame", {
       msg: "게임이 시작되었습니다.",
@@ -213,9 +211,9 @@ io.on("connection", (socket) => {
   socket.on("endGame", async () => {
     console.log(`${socket.roomId} 게임이 종료되었습니다.`);
 
-    const socketId = socket.roomId;
+    const roomId = socket.roomId;
 
-    await Room.updateOne({ socketId }, { $set: { start: false } });
+    await Room.updateOne({ roomId }, { $set: { start: false } });
 
     io.to(socket.roomId).emit("endGame", {
       msg: "게임이 종료되었습니다.",
@@ -254,9 +252,9 @@ io.on("connection", (socket) => {
       }
     }
 
-    const socketId = socket.roomId;
+    const roomId = socket.roomId;
 
-    const room = await Room.findOne({ socketId });
+    const room = await Room.findOne({ roomId });
 
     for (let i = 0; i < userArr.length; i++) {
       console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
@@ -268,9 +266,10 @@ io.on("connection", (socket) => {
     console.log("dayVote", JSON.stringify(data));
 
     await Vote.create({
-      socketId: socket.roomId,
-      clicker: data.clicker,
-      clicked: data.clicked,
+      roomId: socket.roomId,
+      clickerJob: data.clickerJob,
+      clickerId: data.clickerId,
+      clickedId: data.clickedId,
       day: true,
     });
   });
@@ -279,20 +278,44 @@ io.on("connection", (socket) => {
     console.log("nightVote", JSON.stringify(data));
 
     await Vote.create({
-      socketId: socket.roomId,
-      clicker: data.clicker,
-      clicked: data.clicked,
+      roomId: socket.roomId,
+      clickerJob: data.clickerJob,
+      clickerId: data.clickerId,
+      clickedId: data.clickedId,
       day: false,
     });
   });
 
   socket.on("dayVoteResult", async () => {
-    const clicked = await Vote.find({ socketId: socket.roomId, day: true });
+    const clicked = await Vote.find({ roomId: socket.roomId, day: true });
 
     const clickedArr = [];
 
     for (let i = 0; i < clicked.length; i++) {
-      clickedArr.push(clicked[i].clicked);
+      clickedArr.push(clicked[i].clickerId);
+    }
+
+    const clickedArrNum = [];
+
+    for (let i = 0; i < clicked.length; i++) {
+      let num = 0;
+      for (let j = 0; j < clicked.length; j++) {
+        if (clickedArr[i] === clickedArr[j]) {
+          num++;
+        }
+      }
+      clickedArrNum.push(num);
+    }
+
+    const maxIndex = clickedArrNum.indexOf(Math.max(...clickedArrNum));
+    const max = Math.max(...clickedArrNum);
+    clickedArrNum[maxIndex] = 0;
+    const max2 = Math.max(...clickedArrNum);
+
+    if (max === max2) {
+      io.to(socket.roomId).emit("dayVoteResult", { id: "아무도 안죽음" });
+    } else {
+      io.to(socket.roomId).emit("dayVoteResult", { id: clickedArr[maxIndex] });
     }
   });
 

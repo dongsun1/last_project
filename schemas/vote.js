@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const voteSchema = mongoose.Schema({
-  socketId: {
+  roomId: {
     type: String,
     required: true,
   },
