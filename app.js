@@ -277,7 +277,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("dayVoteResult", async () => {
-    const clicked = await Vote.find({ roomId: socket.roomId, day: true });
+    const roomId = socket.roomId;
+
+    await Vote.deleteMany({ roomId, day: false });
+    const clicked = await Vote.find({ roomId, day: true });
 
     const clickedArr = [];
 
@@ -300,43 +303,38 @@ io.on("connection", (socket) => {
       console.log(`${voteResult[0][0]} 죽음`);
     }
 
-    const roomId = socket.roomId;
-
     await Job.updateOne(
       { roomId, userId: voteResult[0][0] },
       { $set: { save: false } }
     );
 
-    const endGameCheck = await Job.find({ roomId });
+    const endGame = await Job.find({ roomId });
+
+    const result = endGameCheck(endGame);
+
+    if (result) {
+      socket.emit("endGame", {
+        msg: "게임이 종료되었습니다.",
+      });
+    }
   });
 
   socket.on("nightVoteResult", async () => {
-    await Vote.deleteMany({ roomId, day: true });
-    const clicked = await Vote.find({ roomId: socket.roomId, day: false });
-
     const roomId = socket.roomId;
 
-    // for (let i = 0; i < clicked.length; i++) {
-    //   if (clicked[i].clickerJob === "mafia") {
-    //     for (let j = 0; j < clicked.length; j++){
-    //       if (clicked[i])
-    //     }
-    //   }
-    // }
-  });
+    await Vote.deleteMany({ roomId, day: true });
+    const clicked = await Vote.find({ roomId, day: false });
 
-  // socket.on("voteList", () => {
-  //   for (let i = 0; i < rooms.length; i++) {
-  //     if (rooms[i].socketId === socket.roomId) {
-  //       console.log("voteList", rooms[i].voteList);
-  //       rooms[i].night ? (rooms[i].night = false) : (rooms[i].night = true);
-  //       io.to(socket.roomId).emit("voteList", rooms[i].voteList);
-  //       io.to(socket.roomId).emit("night", rooms[i].night);
-  //       rooms[i].voteList = [];
-  //       break;
-  //     }
-  //   }
-  // });
+    const endGame = await Job.find({ roomId });
+
+    const result = endGameCheck(endGame);
+
+    if (result) {
+      socket.emit("endGame", {
+        msg: "게임이 종료되었습니다.",
+      });
+    }
+  });
 });
 
 // 서버 열기
@@ -365,4 +363,31 @@ function getSortedArr(array) {
     return second[1] - first[1];
   });
   return result;
+}
+
+function endGameCheck(endGame) {
+  const jopArr = [];
+
+  for (let i = 0; i < endGame.length; i++) {
+    jopArr.push(endGame[i].userJop);
+  }
+
+  let citizenNum = 0;
+  let mafiaNum = 0;
+  for (let i = 0; i < jopArr.length; i++) {
+    if (
+      jopArr[i] === "citizen" ||
+      jopArr[i] === "police" ||
+      jopArr[i] === "doctor"
+    ) {
+      citizenNum++;
+    } else if (jopArr[i] === "mafia") {
+      mafiaNum++;
+    }
+  }
+
+  if (citizenNum <= mafiaNum) {
+    console.log("게임종료");
+    return true;
+  }
 }
