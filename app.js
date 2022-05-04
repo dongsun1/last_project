@@ -188,8 +188,56 @@ io.on("connection", (socket) => {
     io.emit("roomList", rooms);
   });
 
-  socket.on("timer", async () => {
+  socket.on("startGame", async () => {
+    console.log(`${socket.roomId} 게임이 시작되었습니다.`);
+
     const roomId = socket.roomId;
+
+    await Room.updateOne({ roomId }, { $set: { start: true } });
+
+    const room = await Room.findOne({ roomId });
+    const userArr = room.currentPeopleSocketId;
+    // 각 user 직업 부여
+    const job = [];
+    // 1:citizen, 2:doctor, 3:police, 4:mafia
+    switch (userArr.length) {
+      case 4:
+        job.push(1, 1, 1, 4);
+        break;
+      case 5:
+        job.push(1, 1, 1, 2, 4);
+        break;
+      case 6:
+        job.push(1, 1, 2, 3, 4, 4);
+        break;
+    }
+
+    // job random 부여
+    const jobArr = job.sort(() => Math.random() - 0.5);
+    // console.log('jobArr->', jobArr);
+    const playerJob = [];
+    for (let i = 0; i < jobArr.length; i++) {
+      if (jobArr[i] == 1) {
+        playerJob.push("citizen");
+      } else if (jobArr[i] == 2) {
+        playerJob.push("doctor");
+      } else if (jobArr[i] == 3) {
+        playerJob.push("police");
+      } else if (jobArr[i] == 4) {
+        playerJob.push("mafia");
+      }
+    }
+
+    for (let i = 0; i < userArr.length; i++) {
+      console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
+      io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
+      await Job.create({
+        roomId,
+        userSocketId: userArr[i],
+        userId: room.currentPeople[i],
+        userJob: playerJob[i],
+      });
+    }
 
     const counter = 60;
 
@@ -322,18 +370,6 @@ io.on("connection", (socket) => {
     }, 1000);
   });
 
-  socket.on("startGame", async () => {
-    console.log(`${socket.roomId} 게임이 시작되었습니다.`);
-
-    const roomId = socket.roomId;
-
-    await Room.updateOne({ roomId }, { $set: { start: true } });
-
-    // io.to(socket.roomId).emit("startGame", {
-    //   msg: "게임이 시작되었습니다.",
-    // });
-  });
-
   socket.on("endGame", async () => {
     console.log(`${socket.roomId} 게임이 종료되었습니다.`);
 
@@ -344,55 +380,7 @@ io.on("connection", (socket) => {
     await Job.deleteMany({ roomId });
   });
 
-  socket.on("getJob", async () => {
-    const roomId = socket.roomId;
-
-    const roomOne = await Room.findOne({ roomId });
-    const userArr = roomOne.currentPeopleSocketId;
-    // 각 user 직업 부여
-    const job = [];
-    // 1:citizen, 2:doctor, 3:police, 4:mafia
-    switch (userArr.length) {
-      case 4:
-        job.push(1, 1, 1, 4);
-        break;
-      case 5:
-        job.push(1, 1, 1, 2, 4);
-        break;
-      case 6:
-        job.push(1, 1, 2, 3, 4, 4);
-        break;
-    }
-
-    // job random 부여
-    const jobArr = job.sort(() => Math.random() - 0.5);
-    // console.log('jobArr->', jobArr);
-    const playerJob = [];
-    for (let i = 0; i < jobArr.length; i++) {
-      if (jobArr[i] == 1) {
-        playerJob.push("citizen");
-      } else if (jobArr[i] == 2) {
-        playerJob.push("doctor");
-      } else if (jobArr[i] == 3) {
-        playerJob.push("police");
-      } else if (jobArr[i] == 4) {
-        playerJob.push("mafia");
-      }
-    }
-
-    const room = await Room.findOne({ roomId });
-
-    for (let i = 0; i < userArr.length; i++) {
-      console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
-      io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
-      await Job.create({
-        roomId,
-        userSocketId: userArr[i],
-        userId: room.currentPeople[i],
-        userJob: playerJob[i],
-      });
-    }
-  });
+  socket.on("getJob", async () => {});
 
   socket.on("vote", async (data) => {
     console.log("vote", JSON.stringify(data));
@@ -408,13 +396,6 @@ io.on("connection", (socket) => {
       clickedId: data.clickedId,
       day: day.night,
     });
-  });
-
-  socket.on("dayVoteResult", async () => {});
-
-  socket.on("nightVoteResult", async () => {
-    console.log(`nightVoteResult`);
-    const roomId = socket.roomId;
   });
 });
 
@@ -447,22 +428,22 @@ function getSortedArr(array) {
 }
 
 function endGameCheck(endGame) {
-  const jopArr = [];
+  const jobArr = [];
 
   for (let i = 0; i < endGame.length; i++) {
-    jopArr.push(endGame[i].userJop);
+    jobArr.push(endGame[i].userJob);
   }
 
   let citizenNum = 0;
   let mafiaNum = 0;
-  for (let i = 0; i < jopArr.length; i++) {
+  for (let i = 0; i < jobArr.length; i++) {
     if (
-      jopArr[i] === "citizen" ||
-      jopArr[i] === "police" ||
-      jopArr[i] === "doctor"
+      jobArr[i] === "citizen" ||
+      jobArr[i] === "police" ||
+      jobArr[i] === "doctor"
     ) {
       citizenNum++;
-    } else if (jopArr[i] === "mafia") {
+    } else if (jobArr[i] === "mafia") {
       mafiaNum++;
     }
   }
