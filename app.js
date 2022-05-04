@@ -399,7 +399,7 @@ io.on("connection", (socket) => {
       clickerJob: data.clickerJob,
       clickerId: data.clickerId,
       clickedId: data.clickedId,
-      day: day.night,
+      day: !day.night,
     });
   });
 });
