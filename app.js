@@ -373,9 +373,9 @@ io.on("connection", (socket) => {
           }
         }
       }
-      if (count < 0) {
+      if (counter < 0) {
         first = false;
-        count = 60;
+        counter = 60;
       }
     }, 1000);
   });
