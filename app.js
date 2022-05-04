@@ -253,7 +253,7 @@ io.on("connection", (socket) => {
           io.to(socket.roomId).emit("isNight", !day.night);
           await Room.updateOne({ roomId }, { $set: { night: !day.night } });
 
-          if (day.night) {
+          if (!day.night) {
             console.log(`${roomId} 밤이 되었습니다.`);
             counter = 20;
 
