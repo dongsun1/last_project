@@ -289,18 +289,6 @@ io.on("connection", (socket) => {
             { roomId, userId: voteResult[0][0] },
             { $set: { save: false } }
           );
-
-          const endGame = await Job.find({ roomId });
-          const result = endGameCheck(endGame);
-          if (result) {
-            clearInterval(countdown);
-            io.to(socket.roomId).emit("endGame", {
-              msg: "게임이 종료되었습니다.",
-            });
-            await Room.updateOne({ roomId }, { $set: { start: false } });
-            await Vote.deleteMany({ roomId });
-            await Job.deleteMany({ roomId });
-          }
         } else {
           counter = 120;
 
@@ -354,30 +342,26 @@ io.on("connection", (socket) => {
               }
             }
           }
-
-          // 투표 결과
-          io.to(socket.roomId).emit("nightVoteResult", { died, saved });
-          const endGame = await Job.find({ roomId });
-          const result = endGameCheck(endGame);
-          if (result === "시민 승") {
-            console.log(`${roomId} 시민이 승리하였습니다.`);
-            await Room.updateOne({ roomId }, { $set: { start: false } });
-            await Vote.deleteMany({ roomId });
-            await Job.deleteMany({ roomId });
-          } else if (result === "마피아 승") {
-            console.log("마피아 승");
-          } else {
-            console.log("게임 안끝남");
-          }
-          if (result) {
-            clearInterval(countdown);
-            io.to(socket.roomId).emit("endGame", {
-              msg: "게임이 종료되었습니다.",
-            });
-            await Room.updateOne({ roomId }, { $set: { start: false } });
-            await Vote.deleteMany({ roomId });
-            await Job.deleteMany({ roomId });
-          }
+        }
+        // 투표 결과
+        const endGame = await Job.find({ roomId });
+        const result = endGameCheck(endGame);
+        if (result === "시민 승") {
+          console.log(`${roomId} 시민이 승리하였습니다.`);
+          io.to(socket.roomId).emit("endGame", {
+            msg: "시민이 승리하였습니다.",
+          });
+          await Room.updateOne({ roomId }, { $set: { start: false } });
+          await Vote.deleteMany({ roomId });
+          await Job.deleteMany({ roomId });
+        } else if (result === "마피아 승") {
+          console.log(`${roomId} 시민이 승리하였습니다.`);
+          io.to(socket.roomId).emit("endGame", {
+            msg: "시민이 승리하였습니다.",
+          });
+          await Room.updateOne({ roomId }, { $set: { start: false } });
+          await Vote.deleteMany({ roomId });
+          await Job.deleteMany({ roomId });
         }
       }
     }, 1000);
