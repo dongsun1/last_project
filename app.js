@@ -188,13 +188,36 @@ io.on("connection", (socket) => {
     io.emit("roomList", rooms);
   });
 
-  socket.on("timer", (counter) => {
-    const countdown = setInterval(() => {
+  socket.on("timer", async () => {
+    const roomId = socket.roomId;
+
+    const day = await Room.findOne({ roomId });
+
+    const counter = 120;
+    if (day.night) {
+      counter = 60;
+    }
+
+    const endGame = await Job.find({ roomId });
+    const result = endGameCheck(endGame);
+
+    const countdown = setInterval(async () => {
       const min = parseInt(counter / 60);
       const sec = counter % 60;
       io.to(socket.roomId).emit("timer", { min, sec });
       counter--;
+
       if (counter < 0) {
+        counter = 120;
+        if (day.night) {
+          counter = 60;
+        }
+        const day = await Room.findOne({ roomId });
+        io.to(socket.roomId).emit("isNight", !day.night);
+        await Room.updateOne({ roomId }, { $set: { night: !day.night } });
+      }
+
+      if (result) {
         clearInterval(countdown);
       }
     }, 1000);
@@ -207,9 +230,9 @@ io.on("connection", (socket) => {
 
     await Room.updateOne({ roomId }, { $set: { start: true } });
 
-    io.to(socket.roomId).emit("startGame", {
-      msg: "게임이 시작되었습니다.",
-    });
+    // io.to(socket.roomId).emit("startGame", {
+    //   msg: "게임이 시작되었습니다.",
+    // });
   });
 
   socket.on("endGame", async () => {
@@ -222,7 +245,11 @@ io.on("connection", (socket) => {
     await Job.deleteMany({ roomId });
   });
 
-  socket.on("getJob", async (userArr) => {
+  socket.on("getJob", async () => {
+    const roomId = socket.roomId;
+
+    const roomOne = await Room.findOne({ roomId });
+    const userArr = roomOne.currentPeopleSocketId;
     // 각 user 직업 부여
     const job = [];
     // 1:citizen, 2:doctor, 3:police, 4:mafia
@@ -254,8 +281,6 @@ io.on("connection", (socket) => {
       }
     }
 
-    const roomId = socket.roomId;
-
     const room = await Room.findOne({ roomId });
 
     for (let i = 0; i < userArr.length; i++) {
@@ -273,13 +298,16 @@ io.on("connection", (socket) => {
   socket.on("vote", async (data) => {
     console.log("vote", JSON.stringify(data));
 
+    const roomId = socket.roomId;
+    const day = await Room.findOne({ roomId });
+
     await Vote.create({
       roomId: socket.roomId,
       userSocketId: socket.id,
       clickerJob: data.clickerJob,
       clickerId: data.clickerId,
       clickedId: data.clickedId,
-      day: data.day,
+      day: day.night,
     });
   });
 
@@ -296,8 +324,6 @@ io.on("connection", (socket) => {
     }
 
     const voteResult = getSortedArr(clickedArr);
-
-    console.log(voteResult);
 
     if (voteResult.length !== 1) {
       if (voteResult[0][1] === voteResult[1][1]) {
@@ -333,6 +359,7 @@ io.on("connection", (socket) => {
     console.log(`nightVoteResult`);
     const roomId = socket.roomId;
 
+    await Room.updateOne({ roomId }, { $set: { night: false } });
     await Vote.deleteMany({ roomId, day: true });
     const votes = await Vote.find({ roomId, day: false });
 

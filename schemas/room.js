@@ -39,7 +39,7 @@ const roomSchema = mongoose.Schema({
   },
   night: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 });
 
