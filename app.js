@@ -239,7 +239,7 @@ io.on("connection", (socket) => {
       });
     }
 
-    const counter = 60;
+    let counter = 60;
 
     const countdown = setInterval(async () => {
       const min = parseInt(counter / 60);
