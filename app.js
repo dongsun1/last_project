@@ -82,7 +82,6 @@ app.get(
       __dirname +
         "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt"
     );
-    console.log("test");
   }
 );
 
