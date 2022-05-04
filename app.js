@@ -268,15 +268,25 @@ io.on("connection", (socket) => {
 
             const voteResult = getSortedArr(clickedArr);
 
+            const diedPeople = await Job.find({ roomId });
+            const diedPeopleArr = [];
+            for (let i = 0; i < diedPeople.length; i++) {
+              if (!diedPeople[i].save) {
+                diedPeopleArr.push(diedPeople[i].userId);
+              }
+            }
+
             if (voteResult.length !== 1) {
               if (voteResult[0][1] === voteResult[1][1]) {
                 io.to(socket.roomId).emit("dayVoteResult", {
                   id: "아무도 안죽음",
+                  diedPeopleArr,
                 });
                 console.log(`아무도 안죽음`);
               } else {
                 io.to(socket.roomId).emit("dayVoteResult", {
                   id: voteResult[0][0],
+                  diedPeopleArr,
                 });
                 console.log(`${voteResult[0][0]} 죽음`);
                 await Job.updateOne(
@@ -287,6 +297,7 @@ io.on("connection", (socket) => {
             } else {
               io.to(socket.roomId).emit("dayVoteResult", {
                 id: voteResult[0][0],
+                diedPeopleArr,
               });
               console.log(`${voteResult[0][0]} 죽음`);
               await Job.updateOne(
@@ -323,7 +334,7 @@ io.on("connection", (socket) => {
                   userId: votes[i].clickedId,
                 });
                 console.log(
-                  `경찰이 지목한 사람의 직업은 ${votes[i].clickedId}: ${clickedJob.userJob}입니다.`
+                  `경찰이 지목한 사람의 직업은 ${votes[i].clickedId} ${clickedJob.userJob}입니다.`
                 );
                 io.to(votes[i].userSocketId).emit("police", clickedJob.userJob);
               }
@@ -349,8 +360,22 @@ io.on("connection", (socket) => {
               }
             }
 
+            // 살린 사람 지우기
             died = died.filter((x) => !saved.includes(x));
-            io.to(socket.roomId).emit("nightVoteResult", { died, saved });
+
+            const diedPeople = await Job.find({ roomId });
+            const diedPeopleArr = [];
+            for (let i = 0; i < diedPeople.length; i++) {
+              if (!diedPeople[i].save) {
+                diedPeopleArr.push(diedPeople[i].userId);
+              }
+            }
+
+            io.to(socket.roomId).emit("nightVoteResult", {
+              died,
+              saved,
+              diedPeopleArr,
+            });
           }
           // 투표 결과
           const endGame = await Job.find({ roomId });
