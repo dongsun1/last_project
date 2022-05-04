@@ -279,18 +279,21 @@ io.on("connection", (socket) => {
                   id: voteResult[0][0],
                 });
                 console.log(`${voteResult[0][0]} 죽음`);
+                await Job.updateOne(
+                  { roomId, userId: voteResult[0][0] },
+                  { $set: { save: false } }
+                );
               }
             } else {
               io.to(socket.roomId).emit("dayVoteResult", {
                 id: voteResult[0][0],
               });
               console.log(`${voteResult[0][0]} 죽음`);
+              await Job.updateOne(
+                { roomId, userId: voteResult[0][0] },
+                { $set: { save: false } }
+              );
             }
-
-            await Job.updateOne(
-              { roomId, userId: voteResult[0][0] },
-              { $set: { save: false } }
-            );
           } else {
             console.log(`${roomId} 낮이 되었습니다.`);
             counter = 120;
@@ -376,6 +379,10 @@ io.on("connection", (socket) => {
       if (counter < 0) {
         first = false;
         counter = 60;
+        console.log(`${roomId} 밤이 되었습니다.`);
+        const day = await Room.findOne({ roomId });
+        io.to(socket.roomId).emit("isNight", !day.night);
+        await Room.updateOne({ roomId }, { $set: { night: !day.night } });
       }
     }, 1000);
   });
