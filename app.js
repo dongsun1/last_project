@@ -297,6 +297,8 @@ io.on("connection", (socket) => {
             io.to(socket.roomId).emit("endGame", {
               msg: "게임이 종료되었습니다.",
             });
+            await Room.updateOne({ roomId }, { $set: { start: false } });
+            await Vote.deleteMany({ roomId });
             await Job.deleteMany({ roomId });
           }
         } else {
@@ -355,32 +357,31 @@ io.on("connection", (socket) => {
 
           // 투표 결과
           io.to(socket.roomId).emit("nightVoteResult", { died, saved });
-        }
-
-        const endGame = await Job.find({ roomId });
-        const result = endGameCheck(endGame);
-        if (result) {
-          clearInterval(countdown);
-          io.to(socket.roomId).emit("endGame", {
-            msg: "게임이 종료되었습니다.",
-          });
-          await Job.deleteMany({ roomId });
+          const endGame = await Job.find({ roomId });
+          const result = endGameCheck(endGame);
+          if (result === "시민 승") {
+            console.log(`${roomId} 시민이 승리하였습니다.`);
+            await Room.updateOne({ roomId }, { $set: { start: false } });
+            await Vote.deleteMany({ roomId });
+            await Job.deleteMany({ roomId });
+          } else if (result === "마피아 승") {
+            console.log("마피아 승");
+          } else {
+            console.log("게임 안끝남");
+          }
+          if (result) {
+            clearInterval(countdown);
+            io.to(socket.roomId).emit("endGame", {
+              msg: "게임이 종료되었습니다.",
+            });
+            await Room.updateOne({ roomId }, { $set: { start: false } });
+            await Vote.deleteMany({ roomId });
+            await Job.deleteMany({ roomId });
+          }
         }
       }
     }, 1000);
   });
-
-  socket.on("endGame", async () => {
-    console.log(`${socket.roomId} 게임이 종료되었습니다.`);
-
-    const roomId = socket.roomId;
-
-    await Room.updateOne({ roomId }, { $set: { start: false } });
-    await Vote.deleteMany({ roomId });
-    await Job.deleteMany({ roomId });
-  });
-
-  socket.on("getJob", async () => {});
 
   socket.on("vote", async (data) => {
     console.log("vote", JSON.stringify(data));
@@ -431,7 +432,9 @@ function endGameCheck(endGame) {
   const jobArr = [];
 
   for (let i = 0; i < endGame.length; i++) {
-    jobArr.push(endGame[i].userJob);
+    if (endGame[i].save) {
+      jobArr.push(endGame[i].userJob);
+    }
   }
 
   let citizenNum = 0;
@@ -449,9 +452,10 @@ function endGameCheck(endGame) {
   }
 
   if (citizenNum <= mafiaNum) {
-    console.log("게임종료");
-    return true;
-  } else {
-    return false;
+    return "마피아 승";
   }
+  if (mafiaNum === 0) {
+    return "시민 승";
+  }
+  return false;
 }
