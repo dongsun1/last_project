@@ -239,7 +239,7 @@ io.on("connection", (socket) => {
       });
     }
 
-    let counter = 60;
+    let counter = 20;
     let first = true;
 
     const countdown = setInterval(async () => {
@@ -255,7 +255,7 @@ io.on("connection", (socket) => {
 
           if (day.night) {
             console.log(`${roomId} 밤이 되었습니다.`);
-            counter = 60;
+            counter = 20;
 
             await Vote.deleteMany({ roomId, day: false });
             const votes = await Vote.find({ roomId, day: true });
@@ -296,7 +296,7 @@ io.on("connection", (socket) => {
             }
           } else {
             console.log(`${roomId} 낮이 되었습니다.`);
-            counter = 120;
+            counter = 30;
 
             await Vote.deleteMany({ roomId, day: true });
             const votes = await Vote.find({ roomId, day: false });
@@ -378,7 +378,7 @@ io.on("connection", (socket) => {
       }
       if (counter < 0) {
         first = false;
-        counter = 60;
+        counter = 20;
         console.log(`${roomId} 밤이 되었습니다.`);
         const day = await Room.findOne({ roomId });
         io.to(socket.roomId).emit("isNight", !day.night);
