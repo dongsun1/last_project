@@ -218,10 +218,8 @@ io.on("connection", (socket) => {
     const roomId = socket.roomId;
 
     await Room.updateOne({ roomId }, { $set: { start: false } });
-
-    socket.emit("endGame", {
-      msg: "게임이 종료되었습니다.",
-    });
+    await Vote.deleteMany({ roomId });
+    await Job.deleteMany({ roomId });
   });
 
   socket.on("getJob", async (userArr) => {
@@ -442,5 +440,7 @@ function endGameCheck(endGame) {
   if (citizenNum <= mafiaNum) {
     console.log("게임종료");
     return true;
+  } else {
+    return false;
   }
 }
