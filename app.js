@@ -355,9 +355,9 @@ io.on("connection", (socket) => {
           await Vote.deleteMany({ roomId });
           await Job.deleteMany({ roomId });
         } else if (result === "마피아 승") {
-          console.log(`${roomId} 시민이 승리하였습니다.`);
+          console.log(`${roomId} 마피아가 승리하였습니다.`);
           io.to(socket.roomId).emit("endGame", {
-            msg: "시민이 승리하였습니다.",
+            msg: "마피아가 승리하였습니다.",
           });
           await Room.updateOne({ roomId }, { $set: { start: false } });
           await Vote.deleteMany({ roomId });
@@ -434,7 +434,6 @@ function endGameCheck(endGame) {
       mafiaNum++;
     }
   }
-
   if (citizenNum <= mafiaNum) {
     return "마피아 승";
   }
