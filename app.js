@@ -191,15 +191,7 @@ io.on("connection", (socket) => {
   socket.on("timer", async () => {
     const roomId = socket.roomId;
 
-    const day = await Room.findOne({ roomId });
-
-    const counter = 120;
-    if (day.night) {
-      counter = 60;
-    }
-
-    const endGame = await Job.find({ roomId });
-    const result = endGameCheck(endGame);
+    const counter = 60;
 
     const countdown = setInterval(async () => {
       const min = parseInt(counter / 60);
@@ -208,17 +200,124 @@ io.on("connection", (socket) => {
       counter--;
 
       if (counter < 0) {
-        counter = 120;
-        if (day.night) {
-          counter = 60;
-        }
         const day = await Room.findOne({ roomId });
         io.to(socket.roomId).emit("isNight", !day.night);
         await Room.updateOne({ roomId }, { $set: { night: !day.night } });
-      }
 
-      if (result) {
-        clearInterval(countdown);
+        if (day.night) {
+          counter = 60;
+
+          await Vote.deleteMany({ roomId, day: false });
+          const votes = await Vote.find({ roomId, day: true });
+
+          const clickedArr = [];
+
+          for (let i = 0; i < votes.length; i++) {
+            clickedArr.push(votes[i].clickedId);
+          }
+
+          const voteResult = getSortedArr(clickedArr);
+
+          if (voteResult.length !== 1) {
+            if (voteResult[0][1] === voteResult[1][1]) {
+              io.to(socket.roomId).emit("dayVoteResult", {
+                id: "아무도 안죽음",
+              });
+              console.log(`아무도 안죽음`);
+            } else {
+              io.to(socket.roomId).emit("dayVoteResult", {
+                id: voteResult[0][0],
+              });
+              console.log(`${voteResult[0][0]} 죽음`);
+            }
+          } else {
+            io.to(socket.roomId).emit("dayVoteResult", {
+              id: voteResult[0][0],
+            });
+            console.log(`${voteResult[0][0]} 죽음`);
+          }
+
+          await Job.updateOne(
+            { roomId, userId: voteResult[0][0] },
+            { $set: { save: false } }
+          );
+
+          const endGame = await Job.find({ roomId });
+          const result = endGameCheck(endGame);
+          if (result) {
+            clearInterval(countdown);
+            io.to(socket.roomId).emit("endGame", {
+              msg: "게임이 종료되었습니다.",
+            });
+            await Job.deleteMany({ roomId });
+          }
+        } else {
+          counter = 120;
+
+          await Vote.deleteMany({ roomId, day: true });
+          const votes = await Vote.find({ roomId, day: false });
+
+          const died = [];
+          const saved = [];
+
+          for (let i = 0; i < votes.length; i++) {
+            // 마피아
+            if (votes[i].clickerJob === "mafia") {
+              await Job.updateOne(
+                { roomId, userId: votes[i].clickedId },
+                { $set: { save: false } }
+              );
+              console.log(
+                `${votes[i].clickedId}님이 마피아에 의해 살해당했습니다.`
+              );
+              died.push(votes[i].clickedId);
+            }
+            // 경찰
+            if (votes[i].clickerJob === "police") {
+              const clickedJob = await Job.findOne({
+                roomId,
+                userId: votes[i].clickedId,
+              });
+              console.log(
+                `경찰이 지목한 사람의 직업은 ${votes[i].clickedId}: ${clickedJob.userJob}입니다.`
+              );
+              io.to(votes[i].userSocketId).emit("police", clickedJob.userJob);
+            }
+          }
+
+          // 의사
+          for (let i = 0; i < votes.length; i++) {
+            if (votes[i].clickerJob === "doctor") {
+              const clickedUser = await Job.findOne({
+                roomId,
+                userId: votes[i].clickedId,
+              });
+              if (!clickedUser.save) {
+                await Job.updateOne(
+                  { roomId, userId: votes[i].clickedId },
+                  { $set: { save: true } }
+                );
+                console.log(
+                  `${votes[i].clickedId}님이 의사에 의해 치료되었습니다.`
+                );
+                saved.push(votes[i].clickedId);
+              }
+            }
+          }
+
+          // 투표 결과
+          io.to(socket.roomId).emit("nightVoteResult", { died, saved });
+        }
+
+        const endGame = await Job.find({ roomId });
+        const result = endGameCheck(endGame);
+        if (result) {
+          clearInterval(countdown);
+          io.to(socket.roomId).emit("endGame", {
+            msg: "게임이 종료되었습니다.",
+          });
+          await Job.deleteMany({ roomId });
+        }
       }
     }, 1000);
   });
@@ -311,107 +410,11 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("dayVoteResult", async () => {
-    const roomId = socket.roomId;
-
-    await Vote.deleteMany({ roomId, day: false });
-    const votes = await Vote.find({ roomId, day: true });
-
-    const clickedArr = [];
-
-    for (let i = 0; i < votes.length; i++) {
-      clickedArr.push(votes[i].clickedId);
-    }
-
-    const voteResult = getSortedArr(clickedArr);
-
-    if (voteResult.length !== 1) {
-      if (voteResult[0][1] === voteResult[1][1]) {
-        socket.emit("dayVoteResult", { id: "아무도 안죽음" });
-        console.log(`아무도 안죽음`);
-      } else {
-        socket.emit("dayVoteResult", { id: voteResult[0][0] });
-        console.log(`${voteResult[0][0]} 죽음`);
-      }
-    } else {
-      socket.emit("dayVoteResult", { id: voteResult[0][0] });
-      console.log(`${voteResult[0][0]} 죽음`);
-    }
-
-    await Job.updateOne(
-      { roomId, userId: voteResult[0][0] },
-      { $set: { save: false } }
-    );
-
-    const endGame = await Job.find({ roomId });
-
-    const result = endGameCheck(endGame);
-
-    if (result) {
-      socket.emit("endGame", {
-        msg: "게임이 종료되었습니다.",
-      });
-      await Job.deleteMany({ roomId });
-    }
-  });
+  socket.on("dayVoteResult", async () => {});
 
   socket.on("nightVoteResult", async () => {
     console.log(`nightVoteResult`);
     const roomId = socket.roomId;
-
-    await Room.updateOne({ roomId }, { $set: { night: false } });
-    await Vote.deleteMany({ roomId, day: true });
-    const votes = await Vote.find({ roomId, day: false });
-
-    for (let i = 0; i < votes.length; i++) {
-      // 마피아
-      if (votes[i].clickerJob === "mafia") {
-        await Job.updateOne(
-          { roomId, userId: votes[i].clickedId },
-          { $set: { save: false } }
-        );
-        console.log(`${votes[i].clickedId}님이 마피아에 의해 살해당했습니다.`);
-      }
-      // 경찰
-      if (votes[i].clickerJob === "police") {
-        const clickedJob = await Job.findOne({
-          roomId,
-          userId: votes[i].clickedId,
-        });
-        console.log(
-          `경찰이 지목한 사람의 직업은 ${votes[i].clickedId}: ${clickedJob.userJob}입니다.`
-        );
-        io.to(votes[i].userSocketId).emit("police", clickedJob.userJob);
-      }
-    }
-
-    // 의사
-    for (let i = 0; i < votes.length; i++) {
-      if (votes[i].clickerJob === "doctor") {
-        await Job.updateOne(
-          { roomId, userId: votes[i].clickedId },
-          { $set: { save: true } }
-        );
-        console.log(`${votes[i].clickedId}님이 의사에 의해 치료되었습니다.`);
-      }
-    }
-
-    // 투표 결과
-    const room = await Job.find({ roomId });
-    // io.to(roomId).emit("nightVoteResult", room);
-    socket.emit("nightVoteResult");
-
-    // 게임 끝났는지 체크
-    const endGame = await Job.find({ roomId });
-    const result = endGameCheck(endGame);
-
-    if (result) {
-      console.log(`${roomId}방 게임이 종료되었습니다.`);
-      socket.emit("endGame", {
-        msg: "게임이 종료되었습니다.",
-      });
-      await Job.deleteMany({ roomId });
-    }
   });
 });
 
