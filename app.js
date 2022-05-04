@@ -342,11 +342,14 @@ io.on("connection", (socket) => {
               }
             }
           }
+
+          io.to(socket.roomId).emit("nightVoteResult", { died, saved });
         }
         // 투표 결과
         const endGame = await Job.find({ roomId });
         const result = endGameCheck(endGame);
         if (result === "시민 승") {
+          clearInterval(countdown);
           console.log(`${roomId} 시민이 승리하였습니다.`);
           io.to(socket.roomId).emit("endGame", {
             msg: "시민이 승리하였습니다.",
@@ -355,6 +358,7 @@ io.on("connection", (socket) => {
           await Vote.deleteMany({ roomId });
           await Job.deleteMany({ roomId });
         } else if (result === "마피아 승") {
+          clearInterval(countdown);
           console.log(`${roomId} 마피아가 승리하였습니다.`);
           io.to(socket.roomId).emit("endGame", {
             msg: "마피아가 승리하였습니다.",
