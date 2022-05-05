@@ -15,6 +15,12 @@ module.exports = (server) => {
       socket.userId = id;
     });
 
+    // Peer Id 받아오기
+    socket.on("peerId", (peerId) => {
+      console.log(`Peer Id 받아오기: ${peerId}`);
+      socket.peerId = peerId;
+    });
+
     // 방 리스트
     socket.on("roomList", async () => {
       console.log("roomList");
@@ -79,7 +85,7 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
-      io.to(roomId).emit("user-connected", socket.userId);
+      io.to(roomId).emit("user-connected", socket.peerId);
     });
 
     // 방 나가기
@@ -114,7 +120,7 @@ module.exports = (server) => {
 
       io.emit("roomList", rooms);
 
-      io.to(roomId).emit("user-disconnected", socket.userId);
+      io.to(roomId).emit("user-disconnected", socket.peerId);
     });
 
     // 게임시작
