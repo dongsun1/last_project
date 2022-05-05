@@ -19,7 +19,7 @@ router.post("/changePw", async (req, res) => {
     return;
   } else if (newPw !== newPwCheck) {
     res.status(400).send({
-      errorMessage: "새비밀번호와 새비밀번호 확인란이 일치하지 않습니다.",
+      errorMessage: "새 비밀번호와 새 비밀번호 확인란이 일치하지 않습니다.",
     });
     return;
   }

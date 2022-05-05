@@ -129,10 +129,10 @@ module.exports = (server) => {
       const userArr = room.currentPeopleSocketId;
       // 각 user 직업 부여
       const job = [];
-      // 1:citizen, 2:doctor, 3:police, 4:mafia
+      // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:insomnia, 6:reporter
       switch (userArr.length) {
         case 4:
-          job.push(1, 1, 1, 4);
+          job.push(1, 4, 5, 6);
           break;
         case 5:
           job.push(1, 1, 1, 2, 4);
@@ -146,14 +146,19 @@ module.exports = (server) => {
       const jobArr = job.sort(() => Math.random() - 0.5);
       const playerJob = [];
       for (let i = 0; i < jobArr.length; i++) {
-        if (jobArr[i] == 1) {
-          playerJob.push("citizen");
-        } else if (jobArr[i] == 2) {
-          playerJob.push("doctor");
-        } else if (jobArr[i] == 3) {
-          playerJob.push("police");
-        } else if (jobArr[i] == 4) {
-          playerJob.push("mafia");
+        switch (jobArr[i]) {
+          case 1:
+            playerJob.push("citizen");
+          case 2:
+            playerJob.push("doctor");
+          case 3:
+            playerJob.push("police");
+          case 4:
+            playerJob.push("mafia");
+          case 5:
+            playerJob.push("insomnia");
+          case 6:
+            playerJob.push("reporter");
         }
       }
 
@@ -188,7 +193,7 @@ module.exports = (server) => {
             await Room.updateOne({ roomId }, { $set: { night: !day.night } });
 
             if (!day.night) {
-              // 밤일 때
+              // 낮 투표 결과
               console.log(`${roomId} 밤이 되었습니다.`);
               counter = 20;
 
@@ -246,7 +251,7 @@ module.exports = (server) => {
                 );
               }
             } else {
-              // 낮일 때
+              // 밤 투표 결과
               console.log(`${roomId} 낮이 되었습니다.`);
               counter = 30;
 
@@ -271,17 +276,58 @@ module.exports = (server) => {
 
                 // 경찰
                 if (votes[i].clickerJob === "police") {
-                  const clickedJob = await Job.findOne({
+                  const clickedUser = await Job.findOne({
                     roomId,
                     userId: votes[i].clickedId,
                   });
                   console.log(
-                    `경찰이 지목한 사람의 직업은 ${votes[i].clickedId} ${clickedJob.userJob}입니다.`
+                    `경찰이 지목한 사람의 직업은 ${votes[i].clickedId} ${clickedUser.userJob}입니다.`
                   );
                   io.to(votes[i].userSocketId).emit(
                     "police",
-                    clickedJob.userJob
+                    clickedUser.userJob
                   );
+                }
+
+                // 불면증 환자
+                if (votes[i].clickerJob === "insomnia") {
+                  const clickedUser = await Job.findOne({
+                    roomId,
+                    userId: votes[i].clickedId,
+                  });
+                  const clickedUserVote = await Vote.findOne({
+                    roomId,
+                    clickerId: clickedUser.userId,
+                    day: false,
+                  });
+                  console.log(
+                    `불면증 환자가 지목한 ${clickedUserVote.clickerId}가 지목한 사람은 ${clickedUserVote.clickedId}입니다.`
+                  );
+                  io.to(votes[i].userSocketId).emit("insomnia", {
+                    clickerId: clickedUserVote.clickerId,
+                    clickedId: clickedUserVote.clickedId,
+                  });
+                }
+
+                // 기자
+                if (votes[i].clickerJob === "reporter") {
+                  const clickedUser = await Job.findOne({
+                    roomId,
+                    userId: votes[i].clickedId,
+                  });
+                  const clickedUserVote = await Vote.findOne({
+                    roomId,
+                    clickerId: clickedUser.userId,
+                    day: false,
+                  });
+                  console.log(
+                    `기자가 지목한 ${clickedUserVote.clickerJob} ${clickedUserVote.clickerId}가 지목한 사람은 ${clickedUserVote.clickedId}입니다.`
+                  );
+                  io.to(roomId).emit("reporter", {
+                    clickerJob: clickedUserVote.clickerJob,
+                    clickerId: clickedUserVote.clickerId,
+                    clickedId: clickedUserVote.clickedId,
+                  });
                 }
               }
 
