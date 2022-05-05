@@ -54,6 +54,7 @@ module.exports = (server) => {
       socket.emit("roomData", room);
     });
 
+    // 방 들어가기
     socket.on("joinRoom", async (roomId) => {
       console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
@@ -78,6 +79,7 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
+      socket.to(socket.roomId).broadcast.emit("user-connected", userId);
     });
 
     // 방 나가기
@@ -111,6 +113,8 @@ module.exports = (server) => {
       const rooms = await Room.find({});
 
       io.emit("roomList", rooms);
+
+      socket.to(roomId).broadcast.emit("user-disconnected", userId);
     });
 
     // 게임시작
