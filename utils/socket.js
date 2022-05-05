@@ -73,13 +73,13 @@ module.exports = (server) => {
 
       const room = await Room.findOne({ roomId });
 
-      io.to(socket.roomId).emit(
+      io.to(roomId).emit(
         "joinRoomMsg",
         socket.userId,
         room.currentPeopleSocketId,
         room.currentPeople
       );
-      io.to(socket.roomId).broadcast.emit("user-connected", socket.userId);
+      io.broadcast.to(roomId).emit("user-connected", socket.userId);
     });
 
     // 방 나가기
@@ -107,14 +107,14 @@ module.exports = (server) => {
         await Room.deleteOne({ roomId });
         socket.emit("leaveRoomMsg", socket.id);
       } else {
-        io.to(socket.roomId).emit("leaveRoomMsg", socket.id, socket.userId);
+        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userId);
       }
 
       const rooms = await Room.find({});
 
       io.emit("roomList", rooms);
 
-      io.to(roomId).broadcast.emit("user-disconnected", socket.userId);
+      io.broadcast.to(roomId).emit("user-disconnected", socket.userId);
     });
 
     // 게임시작
