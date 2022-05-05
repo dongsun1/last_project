@@ -27,8 +27,6 @@ const credentials = {
 
 connect();
 
-const webRTC = require("./routers/webRTC");
-
 const requestMiddleware = (req, res, next) => {
   console.log(
     "[Ip address]:",
@@ -54,6 +52,14 @@ app_low.use((req, res, next) => {
   }
 });
 
+// router -> user
+const usersRouter = require("./routers/user/login");
+const resisterRouter = require("./routers/user/register");
+const kakaoRouter = require("./routers/user/kakaoLogin");
+const findPwRouter = require("./routers/user/findPw");
+const changePwRouter = require("./routers/user/changePw");
+const friendListRouter = require("./routers/user/friendList");
+
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
@@ -69,7 +75,15 @@ app.use(
     secret: "MY_SECRET",
   })
 );
-app.use("/", webRTC);
+
+app.use("/user", [
+  usersRouter,
+  resisterRouter,
+  findPwRouter,
+  changePwRouter,
+  friendListRouter,
+]);
+app.use("", [kakaoRouter]);
 
 app.get(
   "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt",
