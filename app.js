@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const winston = require("./config/winston");
 const helmet = require("helmet");
-const SocketIO = require("socket.io");
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
