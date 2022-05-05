@@ -79,7 +79,7 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
-      socket.to(socket.roomId).broadcast.emit("user-connected", userId);
+      socket.to(socket.roomId).broadcast.emit("user-connected", socket.userId);
     });
 
     // 방 나가기
@@ -114,7 +114,7 @@ module.exports = (server) => {
 
       io.emit("roomList", rooms);
 
-      socket.to(roomId).broadcast.emit("user-disconnected", userId);
+      socket.to(roomId).broadcast.emit("user-disconnected", socket.userId);
     });
 
     // 게임시작
@@ -132,7 +132,7 @@ module.exports = (server) => {
       // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:insomnia, 6:reporter
       switch (userArr.length) {
         case 4:
-          job.push(1, 4, 5, 6);
+          job.push(1, 1, 4, 5);
           break;
         case 5:
           job.push(1, 1, 1, 2, 4);
