@@ -79,7 +79,7 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
-      socket.to(socket.roomId).broadcast.emit("user-connected", socket.userId);
+      io.to(socket.roomId).broadcast.emit("user-connected", socket.userId);
     });
 
     // 방 나가기
@@ -114,7 +114,7 @@ module.exports = (server) => {
 
       io.emit("roomList", rooms);
 
-      socket.to(roomId).broadcast.emit("user-disconnected", socket.userId);
+      io.to(roomId).broadcast.emit("user-disconnected", socket.userId);
     });
 
     // 게임시작
@@ -129,7 +129,7 @@ module.exports = (server) => {
       const userArr = room.currentPeopleSocketId;
       // 각 user 직업 부여
       const job = [];
-      // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:insomnia, 6:reporter
+      // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:reporter
       switch (userArr.length) {
         case 4:
           job.push(1, 1, 4, 5);
@@ -156,8 +156,6 @@ module.exports = (server) => {
           case 4:
             playerJob.push("mafia");
           case 5:
-            playerJob.push("insomnia");
-          case 6:
             playerJob.push("reporter");
         }
       }
