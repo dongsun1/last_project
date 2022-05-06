@@ -51,21 +51,21 @@ module.exports = (server) => {
         `방 만들기: ${number}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
       );
 
-      const roomId = room.roomId;
+      // const roomId = room.roomId;
 
-      await Room.updateOne(
-        { roomId },
-        {
-          $push: {
-            currentPeople: socket.userId,
-            currentPeopleSocketId: socket.id,
-          },
-        }
-      );
+      // await Room.updateOne(
+      //   { roomId },
+      //   {
+      //     $push: {
+      //       currentPeople: socket.userId,
+      //       currentPeopleSocketId: socket.id,
+      //     },
+      //   }
+      // );
 
-      socket.roomId = roomId;
-      socket.peerId = id;
-      socket.join(roomId);
+      // socket.roomId = roomId;
+      // socket.peerId = id;
+      // socket.join(roomId);
       socket.emit("roomData", room);
       io.to(socket.roomId).emit("user-connected", id);
     });
