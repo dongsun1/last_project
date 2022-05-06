@@ -2,6 +2,7 @@ const SocketIO = require("socket.io");
 const Room = require("../schemas/room");
 const Vote = require("../schemas/vote");
 const Job = require("../schemas/job");
+const myPeer = new Peer();
 
 module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
@@ -13,12 +14,6 @@ module.exports = (server) => {
     socket.on("main", (id) => {
       console.log(`아이디 받아오기: ${id}`);
       socket.userId = id;
-    });
-
-    // Peer Id 받아오기
-    socket.on("peerId", (peerId) => {
-      console.log(`Peer Id 받아오기: ${peerId}`);
-      socket.peerId = peerId;
     });
 
     // 방 리스트
@@ -36,7 +31,7 @@ module.exports = (server) => {
 
     // 방 만들기
     socket.on("createRoom", async (data) => {
-      const { roomTitle, roomPeople, roomPwd } = data;
+      const { roomTitle, roomPeople, roomPwd, id } = data;
 
       const maxNumber = await Room.findOne().sort("-roomId");
 
@@ -57,14 +52,32 @@ module.exports = (server) => {
         `방 만들기: ${number}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
       );
 
+      const roomId = room.roomId;
+
+      await Room.updateOne(
+        { roomId },
+        {
+          $push: {
+            currentPeople: socket.userId,
+            currentPeopleSocketId: socket.id,
+          },
+        }
+      );
+
+      socket.roomId = roomId;
+      socket.peerId = id;
+      socket.join(roomId);
       socket.emit("roomData", room);
+      io.to(socket.roomId).emit("user-connected", id);
     });
 
     // 방 들어가기
-    socket.on("joinRoom", async (roomId) => {
+    socket.on("joinRoom", async (data) => {
+      const { roomId, id } = data;
       console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
+      socket.peerId = id;
 
       // Room 현재 인원에서 push
       await Room.updateOne(
@@ -85,7 +98,7 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
-      io.to(roomId).emit("user-connected", socket.peerId);
+      io.to(roomId).emit("user-connected", id);
     });
 
     // 방 나가기
