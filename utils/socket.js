@@ -2,7 +2,6 @@ const SocketIO = require("socket.io");
 const Room = require("../schemas/room");
 const Vote = require("../schemas/vote");
 const Job = require("../schemas/job");
-const myPeer = new Peer();
 
 module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
