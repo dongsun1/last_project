@@ -30,7 +30,7 @@ module.exports = (server) => {
 
     // 방 만들기
     socket.on("createRoom", async (data) => {
-      const { roomTitle, roomPeople, roomPwd, id } = data;
+      const { roomTitle, roomPeople, roomPwd } = data;
 
       const maxNumber = await Room.findOne().sort("-roomId");
 
@@ -67,12 +67,10 @@ module.exports = (server) => {
       // socket.peerId = id;
       // socket.join(roomId);
       socket.emit("roomData", room);
-      io.to(socket.roomId).emit("user-connected", id);
     });
 
     // 방 들어가기
-    socket.on("joinRoom", async (data) => {
-      const { roomId, id } = data;
+    socket.on("joinRoom", async (roomId, id) => {
       console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
@@ -97,6 +95,8 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
+
+      console.log(`peerId ${id}`);
       io.to(roomId).emit("user-connected", id);
     });
 
