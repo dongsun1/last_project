@@ -17,14 +17,20 @@ const userSchema = mongoose.Schema({
   },
   userWin: {
     type: Number,
+    default: 0,
   },
   userLose: {
     type: Number,
+    default: 0,
   },
   from: {
     type: String,
   },
   friendList: [],
+  ready: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("User", userSchema);

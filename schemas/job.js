@@ -19,8 +19,10 @@ const jobSchema = mongoose.Schema({
   },
   save: {
     type: Boolean,
-    required: true,
     default: true,
+  },
+  chance: {
+    type: Boolean,
   },
 });
 
