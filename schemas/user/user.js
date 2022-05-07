@@ -15,6 +15,9 @@ const userSchema = mongoose.Schema({
   userNick: {
     type: String,
   },
+  userProfile: {
+    type: String,
+  },
   userWin: {
     type: Number,
     default: 0,
