@@ -8,7 +8,7 @@ router.post('/searchFriend', authMiddleWare, async (req, res) => {
   console.log('search Friend router');
   const { searchId } = req.body;
   console.log( 'search Friend', searchId );
-  const searchInfo = await User.findOne({userId:search});
+  const searchInfo = await User.findOne({userId:searchId});
   if(searchInfo == null || searchInfo == undefined || searchInfo.length == 0){
     res.send({
       msg : '존재하지 않는 아이디 입니다.'
