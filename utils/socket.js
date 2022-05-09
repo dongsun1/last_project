@@ -470,9 +470,21 @@ module.exports = (server) => {
           }
         }, 1000);
       } else {
-        const msg = "참가자들이 준비가 되지 않았습니다.";
-        console.log(msg);
-        socket.emit("ready", false);
+        const readyRoom = await Room.find({ roomId });
+        const readyId = readyRoom.currentPeople;
+
+        const notReadyId = [];
+
+        for (let i = 0; i < readyId.length; i++) {
+          const notReady = await User.findOne({
+            userId: readyId[i],
+            ready: false,
+          });
+          notReadyId.push(notReady);
+        }
+
+        console.log(`${notReadyId} 참가자들이 준비가 되지 않았습니다.`);
+        socket.emit("ready", false, notReadyId);
       }
     });
 

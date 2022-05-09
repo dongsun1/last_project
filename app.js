@@ -62,8 +62,6 @@ const friendListRouter = require("./routers/user/friendList");
 const naverRouter = require("./routers/user/naverLogin");
 const googleRouter = require("./routers/user/googleLogin");
 
-
-
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
@@ -88,11 +86,7 @@ app.use("/user", [
   friendListRouter,
 ]);
 
-app.use("", [
-  kakaoRouter,
-  naverRouter,
-  googleRouter
-]);
+app.use("", [kakaoRouter, naverRouter, googleRouter]);
 
 app.get(
   "/.well-known/pki-validation/8175506BEAA40D3B37C6C000D41DAA4A.txt",
@@ -105,9 +99,9 @@ app.get(
 );
 
 // social login -> login test
-app.get('/', (req,res) => {
-  console.log('main');
-  res.sendFile(__dirname+'/index.html');
+app.get("/", (req, res) => {
+  console.log("main");
+  res.sendFile(__dirname + "/index.html");
 });
 
 const httpServer = http.createServer(app_low);
