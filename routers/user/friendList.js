@@ -3,6 +3,26 @@ const router = express.Router();
 const User = require("../../schemas/user/user");
 const authMiddleWare = require("../../middleware/authMiddleWare");
 
+// 친구 검색 router
+router.post('/searchFriend', authMiddleWare, async (req, res) => {
+  console.log('search Friend router');
+  const { searchId } = req.body;
+  console.log( 'search Friend', searchId );
+  const searchInfo = await User.findOne({userId:search});
+  if(searchInfo == null || searchInfo == undefined || searchInfo.length == 0){
+    res.send({
+      msg : '존재하지 않는 아이디 입니다.'
+    })
+  }else{
+    const friendId = searchInfo.userId;
+    console.log('friendId', friendId);
+    res.send({
+      friendId
+    });
+  };
+});
+
+// 친구 추가 router
 router.post("/friendAdd", authMiddleWare, async (req, res) => {
   console.log("friendList router");
   //friend id
