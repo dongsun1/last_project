@@ -323,17 +323,12 @@ module.exports = (server) => {
                       roomId,
                       userId: votes[i].clickedId,
                     });
-                    const clickedUserVote = await Vote.findOne({
-                      roomId,
-                      clickerId: clickedUser.userId,
-                      day: false,
-                    });
                     console.log(
-                      `기자가 지목한 ${clickedUserVote.clickerJob} ${clickedUserVote.clickerId}가 지목한 사람은 ${clickedUserVote.clickedId}입니다.`
+                      `기자가 지목한 ${clickedUser.userId}의 직업은 ${clickedUser.userJob}입니다.`
                     );
                     io.to(roomId).emit("reporter", {
-                      clickerJob: clickedUserVote.clickerJob,
-                      clickerId: clickedUserVote.clickerId,
+                      clickerJob: clickedUser.userJob,
+                      clickerId: clickedUser.userId,
                     });
                   }
 
