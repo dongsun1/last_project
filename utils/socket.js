@@ -334,7 +334,6 @@ module.exports = (server) => {
                     io.to(roomId).emit("reporter", {
                       clickerJob: clickedUserVote.clickerJob,
                       clickerId: clickedUserVote.clickerId,
-                      clickedId: clickedUserVote.clickedId,
                     });
                   }
 
