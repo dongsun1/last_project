@@ -161,9 +161,9 @@ module.exports = (server) => {
     socket.on("startGame", async () => {
       const roomId = socket.roomId;
 
-      await User.updateOne(
-        { userId: socket.userId },
-        { $set: { ready: true } }
+      await Room.updateOne(
+        { roomId },
+        { $push: { currentReadyPeople: socket.userId } }
       );
       const ready = await Room.findOne({ roomId });
 
