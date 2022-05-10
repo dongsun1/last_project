@@ -126,12 +126,12 @@ module.exports = (server) => {
         await Room.deleteOne({ roomId });
         socket.emit("leaveRoomMsg", socket.id);
       } else {
-        let newCap;
-        if (roomUpdate.userId === socket.userId) {
-          newCap = roomUpdate.currentPeople[0];
-          await Room.updateOne({ roomId }, { $set: { userId: newCap } });
+        let cap = roomUpdate.userId;
+        if (cap === socket.userId) {
+          cap = roomUpdate.currentPeople[0];
+          await Room.updateOne({ roomId }, { $set: { userId: cap } });
         }
-        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userId, newCap);
+        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userId, cap);
       }
 
       const rooms = await Room.find({});
