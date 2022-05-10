@@ -35,7 +35,7 @@ module.exports = (server) => {
         const userJob = "mafia";
         const mafia = await Job.find({ roomId, userJob });
         for (let i = 0; i < mafia.length; i++) {
-          io.to(mafia[i].userSocketId).emit("msg", { msg });
+          io.to(mafia[i].userSocketId).emit("msg", { msg, id: socket.userId });
         }
       } else {
         // 낮 채팅
@@ -541,6 +541,10 @@ module.exports = (server) => {
         );
         socket.emit("police", clickedUser.userJob);
       }
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`disconnection: ${socket.id}`);
     });
   });
 };
