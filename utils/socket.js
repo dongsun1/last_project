@@ -530,16 +530,18 @@ module.exports = (server) => {
         day: !day.night,
       });
 
-      // 경찰
-      if (data.clickerJob === "police") {
-        const clickedUser = await Job.findOne({
-          roomId,
-          userId: data.clickedId,
-        });
-        console.log(
-          `경찰이 지목한 사람의 직업은 ${data.clickedId} ${clickedUser.userJob}입니다.`
-        );
-        socket.emit("police", clickedUser.userJob);
+      if (day.night) {
+        // 경찰
+        if (data.clickerJob === "police") {
+          const clickedUser = await Job.findOne({
+            roomId,
+            userId: data.clickedId,
+          });
+          console.log(
+            `경찰이 지목한 사람의 직업은 ${data.clickedId} ${clickedUser.userJob}입니다.`
+          );
+          socket.emit("police", clickedUser.userJob);
+        }
       }
     });
 
