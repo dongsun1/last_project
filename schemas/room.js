@@ -29,13 +29,13 @@ const roomSchema = mongoose.Schema({
     type: Array,
     default: [],
   },
+  currentReadyPeople: {
+    type: Array,
+    default: [],
+  },
   start: {
     type: Boolean,
     default: false,
-  },
-  voteList: {
-    type: Array,
-    default: [],
   },
   night: {
     type: Boolean,

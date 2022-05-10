@@ -11,9 +11,9 @@ module.exports = (server) => {
     console.log("connection: ", socket.id);
 
     // 아이디 받아오기
-    socket.on("main", (id) => {
-      console.log(`아이디 받아오기: ${id}`);
-      socket.userId = id;
+    socket.on("main", (userId) => {
+      console.log(`아이디 받아오기: ${userId}`);
+      socket.userId = userId;
     });
 
     // 방 리스트
@@ -24,9 +24,23 @@ module.exports = (server) => {
     });
 
     // 채팅
-    socket.on("msg", (msg) => {
-      console.log(`msg: ${msg}, id: ${socket.userId}`);
-      io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
+    socket.on("msg", async (msg) => {
+      const roomId = socket.roomId;
+      const night = await Room.findOne({ roomId });
+
+      if (night.night) {
+        // 밤 마피아 채팅
+        console.log(`밤 msg: ${msg}, id: ${socket.userId}`);
+        const userJob = "mafia";
+        const mafia = await Job.find({ roomId, userJob });
+        for (let i = 0; i < mafia.length; i++) {
+          io.to(mafia[i].userSocketId).emit("msg", msg);
+        }
+      } else {
+        // 낮 채팅
+        console.log(`낮 msg: ${msg}, id: ${socket.userId}`);
+        io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
+      }
     });
 
     // 방 만들기
@@ -123,12 +137,24 @@ module.exports = (server) => {
 
     // 준비하기
     socket.on("ready", async (ready) => {
+      const roomId = socket.roomId;
       if (ready) {
         console.log(`${socket.userId} 준비완료`);
+        await Room.updateOne(
+          { roomId },
+          { $push: { currentReadyPeople: socket.userId } }
+        );
       } else {
         console.log(`${socket.userId} 준비해제`);
+        await Room.updateOne(
+          { roomId },
+          { $pull: { currentReadyPeople: socket.userId } }
+        );
       }
       await User.updateOne({ userId: socket.userId }, { $set: { ready } });
+
+      const readyPeople = await Room.findOne({ roomId });
+      io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
     });
 
     // 게임시작
