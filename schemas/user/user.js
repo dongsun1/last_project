@@ -30,10 +30,6 @@ const userSchema = mongoose.Schema({
     type: String,
   },
   friendList: [],
-  ready: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 module.exports = mongoose.model("User", userSchema);

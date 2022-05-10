@@ -3,6 +3,7 @@ const Room = require("../schemas/room");
 const Vote = require("../schemas/vote");
 const Job = require("../schemas/job");
 const User = require("../schemas/user/user");
+const { readFileSync } = require("fs");
 
 module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
@@ -151,7 +152,6 @@ module.exports = (server) => {
           { $pull: { currentReadyPeople: socket.userId } }
         );
       }
-      await User.updateOne({ userId: socket.userId }, { $set: { ready } });
 
       const readyPeople = await Room.findOne({ roomId });
       // io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
@@ -165,9 +165,12 @@ module.exports = (server) => {
         { userId: socket.userId },
         { $set: { ready: true } }
       );
-      const ready = await User.find({ roomId });
+      const ready = await Room.findOne({ roomId });
 
-      const readyResult = readyCheck(ready);
+      const readyResult = readyCheck(
+        ready.currentPeople,
+        ready.currentReadyPeople
+      );
 
       if (readyResult) {
         console.log(`${socket.roomId} 게임이 시작되었습니다.`);
@@ -490,18 +493,12 @@ module.exports = (server) => {
           }
         }, 1000);
       } else {
-        const readyRoom = await Room.findOne({ roomId });
-        const readyId = readyRoom.currentPeople;
+        const ready = await Room.findOne({ roomId });
 
         const notReadyId = [];
-
-        for (let i = 0; i < readyId.length; i++) {
-          const notReady = await User.findOne({
-            userId: readyId[i],
-            ready: false,
-          });
-          notReadyId.push(notReady);
-        }
+        notReadyId = ready.currentPeople.filter(
+          (x) => !ready.currentReadyPeople.includes(x)
+        );
 
         console.log(`${notReadyId} 참가자들이 준비가 되지 않았습니다.`);
         socket.emit("ready", false, notReadyId);
@@ -585,16 +582,10 @@ function endGameCheck(endGame) {
   return false;
 }
 
-function readyCheck(ready) {
-  const readyArr = [];
-  for (let i = 0; i < ready.length; i++) {
-    readyArr.push(ready[i].ready);
+function readyCheck(current, ready) {
+  if (current.length === ready.length) {
+    return true;
+  } else {
+    return false;
   }
-
-  for (let i = 0; i < readyArr.length; i++) {
-    if (!readyArr[i]) {
-      return false;
-    }
-  }
-  return true;
 }
