@@ -3,6 +3,7 @@ const Room = require("../schemas/room");
 const Vote = require("../schemas/vote");
 const Job = require("../schemas/job");
 const User = require("../schemas/user/user");
+const { readFileSync } = require("fs");
 
 module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
@@ -34,7 +35,7 @@ module.exports = (server) => {
         const userJob = "mafia";
         const mafia = await Job.find({ roomId, userJob });
         for (let i = 0; i < mafia.length; i++) {
-          io.to(mafia[i].userSocketId).emit("msg", msg);
+          io.to(mafia[i].userSocketId).emit("msg", { msg, id: socket.userId });
         }
       } else {
         // 낮 채팅
@@ -156,7 +157,6 @@ module.exports = (server) => {
           { $pull: { currentReadyPeople: socket.userId } }
         );
       }
-      await User.updateOne({ userId: socket.userId }, { $set: { ready } });
 
       const readyPeople = await Room.findOne({ roomId });
       io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
@@ -166,13 +166,16 @@ module.exports = (server) => {
     socket.on("startGame", async () => {
       const roomId = socket.roomId;
 
-      await User.updateOne(
-        { userId: socket.userId },
-        { $set: { ready: true } }
+      await Room.updateOne(
+        { roomId },
+        { $push: { currentReadyPeople: socket.userId } }
       );
-      const ready = await User.find({ roomId });
+      const ready = await Room.findOne({ roomId });
 
-      const readyResult = readyCheck(ready);
+      const readyResult = readyCheck(
+        ready.currentPeople,
+        ready.currentReadyPeople
+      );
 
       if (readyResult) {
         console.log(`${socket.roomId} 게임이 시작되었습니다.`);
@@ -187,7 +190,7 @@ module.exports = (server) => {
         // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:reporter, 6:sniper
         switch (userArr.length) {
           case 4:
-            job.push(1, 1, 1, 4);
+            job.push(1, 1, 4, 4);
             break;
           case 5:
             job.push(1, 1, 1, 2, 4);
@@ -478,7 +481,16 @@ module.exports = (server) => {
                 clearInterval(countdown);
                 console.log(`${roomId} ${msg}`);
                 io.to(socket.roomId).emit("endGame", { msg });
-                await Room.updateOne({ roomId }, { $set: { start: false } });
+                const currentPeople = await Room.findOne({ roomId });
+                await Room.updateOne(
+                  { roomId },
+                  {
+                    $set: { start: false },
+                    $pullAll: {
+                      currentReadyPeople: currentPeople.currentPeople,
+                    },
+                  }
+                );
                 await Vote.deleteMany({ roomId });
                 await Job.deleteMany({ roomId });
               }
@@ -495,18 +507,12 @@ module.exports = (server) => {
           }
         }, 1000);
       } else {
-        const readyRoom = await Room.findOne({ roomId });
-        const readyId = readyRoom.currentPeople;
+        const ready = await Room.findOne({ roomId });
 
         const notReadyId = [];
-
-        for (let i = 0; i < readyId.length; i++) {
-          const notReady = await User.findOne({
-            userId: readyId[i],
-            ready: false,
-          });
-          notReadyId.push(notReady);
-        }
+        notReadyId = ready.currentPeople.filter(
+          (x) => !ready.currentReadyPeople.includes(x)
+        );
 
         console.log(`${notReadyId} 참가자들이 준비가 되지 않았습니다.`);
         socket.emit("ready", false, notReadyId);
@@ -540,6 +546,10 @@ module.exports = (server) => {
         );
         socket.emit("police", clickedUser.userJob);
       }
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`disconnection: ${socket.id}`);
     });
   });
 };
@@ -590,16 +600,10 @@ function endGameCheck(endGame) {
   return false;
 }
 
-function readyCheck(ready) {
-  const readyArr = [];
-  for (let i = 0; i < ready.length; i++) {
-    readyArr.push(ready[i].ready);
+function readyCheck(current, ready) {
+  if (current.length === ready.length) {
+    return true;
+  } else {
+    return false;
   }
-
-  for (let i = 0; i < readyArr.length; i++) {
-    if (!readyArr[i]) {
-      return false;
-    }
-  }
-  return true;
 }
