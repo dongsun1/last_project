@@ -35,7 +35,7 @@ module.exports = (server) => {
         const userJob = "mafia";
         const mafia = await Job.find({ roomId, userJob });
         for (let i = 0; i < mafia.length; i++) {
-          io.to(mafia[i].userSocketId).emit("msg", msg);
+          io.to(mafia[i].userSocketId).emit("msg", { msg });
         }
       } else {
         // 낮 채팅
@@ -476,9 +476,15 @@ module.exports = (server) => {
                 clearInterval(countdown);
                 console.log(`${roomId} ${msg}`);
                 io.to(socket.roomId).emit("endGame", { msg });
+                const currentPeople = await Room.findOne({ roomId });
                 await Room.updateOne(
                   { roomId },
-                  { $set: { start: false }, $pullAll: { currentReadyPeople } }
+                  {
+                    $set: { start: false },
+                    $pullAll: {
+                      currentReadyPeople: currentPeople.currentPeople,
+                    },
+                  }
                 );
                 await Vote.deleteMany({ roomId });
                 await Job.deleteMany({ roomId });
