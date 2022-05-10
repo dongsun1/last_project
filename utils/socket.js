@@ -190,7 +190,7 @@ module.exports = (server) => {
         // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:reporter, 6:sniper
         switch (userArr.length) {
           case 4:
-            job.push(1, 1, 4, 4);
+            job.push(1, 2, 3, 4);
             break;
           case 5:
             job.push(1, 1, 1, 2, 4);
