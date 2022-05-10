@@ -154,7 +154,7 @@ module.exports = (server) => {
       }
 
       const readyPeople = await Room.findOne({ roomId });
-      // io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
+      io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
     });
 
     // 게임시작
