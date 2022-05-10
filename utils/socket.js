@@ -490,10 +490,8 @@ module.exports = (server) => {
           }
         }, 1000);
       } else {
-        const readyRoom = await Room.find({ roomId });
+        const readyRoom = await Room.findOne({ roomId });
         const readyId = readyRoom.currentPeople;
-
-        console.log(readyId);
 
         const notReadyId = [];
 
