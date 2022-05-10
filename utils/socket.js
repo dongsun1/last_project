@@ -493,6 +493,8 @@ module.exports = (server) => {
         const readyRoom = await Room.find({ roomId });
         const readyId = readyRoom.currentPeople;
 
+        console.log(readyId);
+
         const notReadyId = [];
 
         for (let i = 0; i < readyId.length; i++) {
