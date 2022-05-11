@@ -75,7 +75,6 @@ module.exports = (server) => {
       socket.peerId = peerId;
       const roomId = socket.roomId;
       console.log(`peerId ${peerId}`);
-      console.log(`roomId ${roomId}`);
       io.to(roomId).emit("user-connected", peerId);
     });
 
