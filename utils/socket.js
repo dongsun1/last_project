@@ -75,11 +75,11 @@ module.exports = (server) => {
       socket.peerId = peerId;
       const roomId = socket.roomId;
       console.log(`peerId ${peerId}`);
-      io.to(roomId).emit("user-connected", peerId);
+      io.to(roomId).broadcast.emit("user-connected", peerId);
     });
 
     // 방 들어가기
-    socket.on("joinRoom", async (roomId, id) => {
+    socket.on("joinRoom", async (roomId) => {
       console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
