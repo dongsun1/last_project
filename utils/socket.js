@@ -75,7 +75,7 @@ module.exports = (server) => {
       socket.peerId = peerId;
       const roomId = socket.roomId;
       console.log(`peerId ${peerId}`);
-      io.to(roomId).broadcast.emit("user-connected", peerId);
+      socket.broadcast.to(roomId).emit("user-connected", peerId);
     });
 
     // 방 들어가기
