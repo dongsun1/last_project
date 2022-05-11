@@ -70,12 +70,18 @@ module.exports = (server) => {
       socket.emit("roomData", room);
     });
 
+    // Peer 방 들어가기
+    socket.on("peerJoinRoom", (peerId) => {
+      socket.peerId = peerId;
+      const roomId = socket.roomId;
+      io.to(roomId).emit("user-connected", peerId);
+    });
+
     // 방 들어가기
     socket.on("joinRoom", async (roomId, id) => {
       console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
-      socket.peerId = id;
 
       // Room 현재 인원에서 push
       await Room.updateOne(
@@ -98,7 +104,6 @@ module.exports = (server) => {
       );
 
       console.log(`peerId ${id}`);
-      io.to(roomId).emit("user-connected", id);
     });
 
     // 방 나가기
