@@ -72,9 +72,10 @@ module.exports = (server) => {
 
     // Peer 방 들어가기
     socket.on("peerJoinRoom", (peerId) => {
-      console.log(`peerId ${peerId}`);
       socket.peerId = peerId;
       const roomId = socket.roomId;
+      console.log(`peerId ${peerId}`);
+      console.log(`roomId ${roomId}`);
       io.to(roomId).emit("user-connected", peerId);
     });
 
