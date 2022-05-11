@@ -142,7 +142,7 @@ module.exports = (server) => {
 
       io.emit("roomList", rooms);
 
-      socket.to(roomId).emit("user-disconnected", socket.peerId);
+      socket.broadcast.to(roomId).emit("user-disconnected", socket.peerId);
     });
 
     // 준비하기
@@ -575,6 +575,25 @@ module.exports = (server) => {
           );
           socket.emit("police", clickedUser.userJob);
         }
+      }
+    });
+
+    // AI 투표
+    socket.on("voteAI", async () => {
+      console.log("voteAI");
+      const roomId = socket.roomId;
+      const room = await Room.findOne({ roomId });
+      const AI = await Job.find({ roomId, AI: true });
+
+      for (let i = 0; i < AI.length; i++) {
+        await Vote.create({
+          roomId: AI[i].roomId,
+          userSocketId: AI[i],
+          clickerJob: AI[i].clickerJob,
+          clickerId: AI[i].clickerId,
+          clickedId: AI[i].clickedId,
+          day: !room.night,
+        });
       }
     });
 
