@@ -193,7 +193,7 @@ module.exports = (server) => {
         if (room.currentPeople.length < room.roomPeople) {
           const aiNum = room.roomPeople.length - room.currentPeople.length;
           for (let i = 0; i < aiNum; i++) {
-            const ai = `AI${i}`;
+            const ai = `AI${room.currentPeople.length + i}`;
             await Room.updateOne(
               { roomId },
               { $push: { currentPeople: ai, currentPeopleSocketId: ai } }
@@ -291,12 +291,39 @@ module.exports = (server) => {
             // 자기소개 시간이 아닐 때
             if (counter < 0) {
               // 카운터가 끝났을 때
+              // AI 투표
               // 낮, 밤 체크
-              const day = await Room.findOne({ roomId });
-              io.to(socket.roomId).emit("isNight", !day.night);
-              await Room.updateOne({ roomId }, { $set: { night: !day.night } });
+              const room = await Room.findOne({ roomId });
+              io.to(socket.roomId).emit("isNight", !room.night);
+              await Room.updateOne(
+                { roomId },
+                { $set: { night: !room.night } }
+              );
 
-              if (!day.night) {
+              // AI 투표
+              const AI = await Job.find({ roomId, AI: true });
+
+              const currentPeople = room.currentPeople;
+
+              for (let i = 0; i < AI.length; i++) {
+                const random = Math.floor(
+                  Math.random() * (room.currentPeople - 1)
+                );
+                if (random === currentPeople.indexOf(`AI${random}`)) {
+                  i--;
+                } else {
+                  await Vote.create({
+                    roomId: AI[i].roomId,
+                    userSocketId: AI[i],
+                    clickerJob: AI[i].userJob,
+                    clickerId: AI[i].userId,
+                    clickedId: currentPeople[random],
+                    day: !room.night,
+                  });
+                }
+              }
+
+              if (!room.night) {
                 // 낮 투표 결과
                 console.log(`${roomId} 밤이 되었습니다.`);
                 counter = 20;
@@ -315,9 +342,12 @@ module.exports = (server) => {
 
                 const diedPeople = await Job.find({ roomId });
                 const diedPeopleArr = [];
+                const savedPeopleArr = [];
                 for (let i = 0; i < diedPeople.length; i++) {
                   if (!diedPeople[i].save) {
                     diedPeopleArr.push(diedPeople[i].userId);
+                  } else {
+                    savedPeopleArr.push(diedPeople[i].userId);
                   }
                 }
 
@@ -328,6 +358,7 @@ module.exports = (server) => {
                     io.to(socket.roomId).emit("dayVoteResult", {
                       id: "아무도 안죽음",
                       diedPeopleArr,
+                      savedPeopleArr,
                     });
                     console.log(`아무도 안죽음`);
                   } else {
@@ -335,6 +366,7 @@ module.exports = (server) => {
                     io.to(socket.roomId).emit("dayVoteResult", {
                       id: voteResult[0][0],
                       diedPeopleArr,
+                      savedPeopleArr,
                     });
                     console.log(`${voteResult[0][0]} 죽음`);
                     await Job.updateOne(
@@ -347,6 +379,7 @@ module.exports = (server) => {
                   io.to(socket.roomId).emit("dayVoteResult", {
                     id: voteResult[0][0],
                     diedPeopleArr,
+                    savedPeopleArr,
                   });
                   console.log(`${voteResult[0][0]} 죽음`);
                   await Job.updateOne(
@@ -445,9 +478,12 @@ module.exports = (server) => {
 
                 const diedPeople = await Job.find({ roomId });
                 const diedPeopleArr = [];
+                const savedPeopleArr = [];
                 for (let i = 0; i < diedPeople.length; i++) {
                   if (!diedPeople[i].save) {
                     diedPeopleArr.push(diedPeople[i].userId);
+                  } else {
+                    savedPeopleArr.push(diedPeople[i].userId);
                   }
                 }
 
@@ -456,7 +492,7 @@ module.exports = (server) => {
                   died,
                   saved,
                   diedPeopleArr,
-                  sniper,
+                  savedPeopleArr,
                 });
               }
 
@@ -575,25 +611,6 @@ module.exports = (server) => {
           );
           socket.emit("police", clickedUser.userJob);
         }
-      }
-    });
-
-    // AI 투표
-    socket.on("voteAI", async () => {
-      console.log("voteAI");
-      const roomId = socket.roomId;
-      const room = await Room.findOne({ roomId });
-      const AI = await Job.find({ roomId, AI: true });
-
-      for (let i = 0; i < AI.length; i++) {
-        await Vote.create({
-          roomId: AI[i].roomId,
-          userSocketId: AI[i],
-          clickerJob: AI[i].clickerJob,
-          clickerId: AI[i].clickerId,
-          clickedId: AI[i].clickedId,
-          day: !room.night,
-        });
       }
     });
 
