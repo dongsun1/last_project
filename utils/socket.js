@@ -139,7 +139,7 @@ module.exports = (server) => {
 
       const rooms = await Room.find({});
 
-      io.emit("roomList", rooms);
+      socket.emit("roomList", rooms);
 
       socket.broadcast.to(roomId).emit("user-disconnected", socket.peerId);
     });
