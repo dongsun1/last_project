@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 
 const kakao = {
   clientid: `${process.env.CLIENTID}`, //REST API
-  redirectUri: "http://localhost:3000/main",
+  redirectUri: "https://sparta-dongsun.shop/main",
 };
 // kakao login page URL
 router.get("/kakaoLogin", (req, res) => {

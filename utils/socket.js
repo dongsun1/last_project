@@ -3,7 +3,6 @@ const Room = require("../schemas/room");
 const Vote = require("../schemas/vote");
 const Job = require("../schemas/job");
 const User = require("../schemas/user/user");
-const { readFileSync } = require("fs");
 
 module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
@@ -291,7 +290,6 @@ module.exports = (server) => {
             // 자기소개 시간이 아닐 때
             if (counter < 0) {
               // 카운터가 끝났을 때
-              // AI 투표
               // 낮, 밤 체크
               const room = await Room.findOne({ roomId });
               io.to(socket.roomId).emit("isNight", !room.night);
@@ -309,17 +307,27 @@ module.exports = (server) => {
                 const random = Math.floor(
                   Math.random() * (room.currentPeople - 1)
                 );
+
+                // 랜덤이 본인일 경우
                 if (random === currentPeople.indexOf(`AI${random}`)) {
                   i--;
                 } else {
-                  await Vote.create({
-                    roomId: AI[i].roomId,
-                    userSocketId: AI[i],
-                    clickerJob: AI[i].userJob,
-                    clickerId: AI[i].userId,
-                    clickedId: currentPeople[random],
-                    day: !room.night,
+                  const save = await Job.findOne({
+                    userId: currentPeople[random],
                   });
+                  // 랜덤이 살아있을 경우 create
+                  if (save.save) {
+                    await Vote.create({
+                      roomId: AI[i].roomId,
+                      userSocketId: AI[i],
+                      clickerJob: AI[i].userJob,
+                      clickerId: AI[i].userId,
+                      clickedId: currentPeople[random],
+                      day: !room.night,
+                    });
+                  } else {
+                    i--;
+                  }
                 }
               }
 
