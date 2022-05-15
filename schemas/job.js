@@ -21,8 +21,9 @@ const jobSchema = mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  chance: {
+  AI: {
     type: Boolean,
+    default: false,
   },
 });
 

@@ -3,7 +3,6 @@ const Room = require("../schemas/room");
 const Vote = require("../schemas/vote");
 const Job = require("../schemas/job");
 const User = require("../schemas/user/user");
-const { readFileSync } = require("fs");
 
 module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
@@ -70,12 +69,19 @@ module.exports = (server) => {
       socket.emit("roomData", room);
     });
 
+    // Peer 방 들어가기
+    socket.on("peerJoinRoom", (peerId) => {
+      socket.peerId = peerId;
+      const roomId = socket.roomId;
+      console.log(`peerId ${peerId}`);
+      socket.broadcast.to(roomId).emit("user-connected", peerId);
+    });
+
     // 방 들어가기
-    socket.on("joinRoom", async (roomId, id) => {
+    socket.on("joinRoom", async (roomId) => {
       console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
-      socket.peerId = id;
 
       // Room 현재 인원에서 push
       await Room.updateOne(
@@ -96,9 +102,6 @@ module.exports = (server) => {
         room.currentPeopleSocketId,
         room.currentPeople
       );
-
-      console.log(`peerId ${id}`);
-      socket.to(roomId).emit("user-connected", id);
     });
 
     // 방 나가기
@@ -136,9 +139,9 @@ module.exports = (server) => {
 
       const rooms = await Room.find({});
 
-      io.emit("roomList", rooms);
+      socket.emit("roomList", rooms);
 
-      socket.to(roomId).emit("user-disconnected", socket.peerId);
+      socket.broadcast.to(roomId).emit("user-disconnected", socket.peerId);
     });
 
     // 준비하기
@@ -183,7 +186,21 @@ module.exports = (server) => {
         socket.emit("ready", true);
         await Room.updateOne({ roomId }, { $set: { start: true } });
 
-        const room = await Room.findOne({ roomId });
+        let room = await Room.findOne({ roomId });
+
+        // AI 생성
+        if (room.currentPeople.length < room.roomPeople) {
+          const aiNum = room.roomPeople.length - room.currentPeople.length;
+          for (let i = 0; i < aiNum; i++) {
+            const ai = `AI${room.currentPeople.length + i}`;
+            await Room.updateOne(
+              { roomId },
+              { $push: { currentPeople: ai, currentPeopleSocketId: ai } }
+            );
+          }
+        }
+        room = await Room.findOne({ roomId });
+
         const userArr = room.currentPeopleSocketId;
         // 각 user 직업 부여
         const job = [];
@@ -242,12 +259,22 @@ module.exports = (server) => {
         for (let i = 0; i < userArr.length; i++) {
           console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
           io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
-          await Job.create({
-            roomId,
-            userSocketId: userArr[i],
-            userId: room.currentPeople[i],
-            userJob: playerJob[i],
-          });
+          if (userArr[i].includes("AI")) {
+            await Job.create({
+              roomId,
+              userSocketId: userArr[i],
+              userId: room.currentPeople[i],
+              userJob: playerJob[i],
+              AI: true,
+            });
+          } else {
+            await Job.create({
+              roomId,
+              userSocketId: userArr[i],
+              userId: room.currentPeople[i],
+              userJob: playerJob[i],
+            });
+          }
         }
 
         let counter = 20;
@@ -264,11 +291,47 @@ module.exports = (server) => {
             if (counter < 0) {
               // 카운터가 끝났을 때
               // 낮, 밤 체크
-              const day = await Room.findOne({ roomId });
-              io.to(socket.roomId).emit("isNight", !day.night);
-              await Room.updateOne({ roomId }, { $set: { night: !day.night } });
+              const room = await Room.findOne({ roomId });
+              io.to(socket.roomId).emit("isNight", !room.night);
+              await Room.updateOne(
+                { roomId },
+                { $set: { night: !room.night } }
+              );
 
-              if (!day.night) {
+              // AI 투표
+              const AI = await Job.find({ roomId, AI: true });
+
+              const currentPeople = room.currentPeople;
+
+              for (let i = 0; i < AI.length; i++) {
+                const random = Math.floor(
+                  Math.random() * (room.currentPeople - 1)
+                );
+
+                // 랜덤이 본인일 경우
+                if (random === currentPeople.indexOf(`AI${random}`)) {
+                  i--;
+                } else {
+                  const save = await Job.findOne({
+                    userId: currentPeople[random],
+                  });
+                  // 랜덤이 살아있을 경우 create
+                  if (save.save) {
+                    await Vote.create({
+                      roomId: AI[i].roomId,
+                      userSocketId: AI[i],
+                      clickerJob: AI[i].userJob,
+                      clickerId: AI[i].userId,
+                      clickedId: currentPeople[random],
+                      day: !room.night,
+                    });
+                  } else {
+                    i--;
+                  }
+                }
+              }
+
+              if (!room.night) {
                 // 낮 투표 결과
                 console.log(`${roomId} 밤이 되었습니다.`);
                 counter = 20;
@@ -287,9 +350,12 @@ module.exports = (server) => {
 
                 const diedPeople = await Job.find({ roomId });
                 const diedPeopleArr = [];
+                const savedPeopleArr = [];
                 for (let i = 0; i < diedPeople.length; i++) {
                   if (!diedPeople[i].save) {
                     diedPeopleArr.push(diedPeople[i].userId);
+                  } else {
+                    savedPeopleArr.push(diedPeople[i].userId);
                   }
                 }
 
@@ -300,6 +366,7 @@ module.exports = (server) => {
                     io.to(socket.roomId).emit("dayVoteResult", {
                       id: "아무도 안죽음",
                       diedPeopleArr,
+                      savedPeopleArr,
                     });
                     console.log(`아무도 안죽음`);
                   } else {
@@ -307,6 +374,7 @@ module.exports = (server) => {
                     io.to(socket.roomId).emit("dayVoteResult", {
                       id: voteResult[0][0],
                       diedPeopleArr,
+                      savedPeopleArr,
                     });
                     console.log(`${voteResult[0][0]} 죽음`);
                     await Job.updateOne(
@@ -319,6 +387,7 @@ module.exports = (server) => {
                   io.to(socket.roomId).emit("dayVoteResult", {
                     id: voteResult[0][0],
                     diedPeopleArr,
+                    savedPeopleArr,
                   });
                   console.log(`${voteResult[0][0]} 죽음`);
                   await Job.updateOne(
@@ -417,9 +486,12 @@ module.exports = (server) => {
 
                 const diedPeople = await Job.find({ roomId });
                 const diedPeopleArr = [];
+                const savedPeopleArr = [];
                 for (let i = 0; i < diedPeople.length; i++) {
                   if (!diedPeople[i].save) {
                     diedPeopleArr.push(diedPeople[i].userId);
+                  } else {
+                    savedPeopleArr.push(diedPeople[i].userId);
                   }
                 }
 
@@ -428,7 +500,7 @@ module.exports = (server) => {
                   died,
                   saved,
                   diedPeopleArr,
-                  sniper,
+                  savedPeopleArr,
                 });
               }
 
@@ -535,16 +607,18 @@ module.exports = (server) => {
         day: !day.night,
       });
 
-      // 경찰
-      if (data.clickerJob === "police") {
-        const clickedUser = await Job.findOne({
-          roomId,
-          userId: data.clickedId,
-        });
-        console.log(
-          `경찰이 지목한 사람의 직업은 ${data.clickedId} ${clickedUser.userJob}입니다.`
-        );
-        socket.emit("police", clickedUser.userJob);
+      if (day.night) {
+        // 경찰
+        if (data.clickerJob === "police") {
+          const clickedUser = await Job.findOne({
+            roomId,
+            userId: data.clickedId,
+          });
+          console.log(
+            `경찰이 지목한 사람의 직업은 ${data.clickedId} ${clickedUser.userJob}입니다.`
+          );
+          socket.emit("police", clickedUser.userJob);
+        }
       }
     });
 
