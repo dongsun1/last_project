@@ -70,11 +70,15 @@ module.exports = (server) => {
     });
 
     // Peer 방 들어가기
-    socket.on("peerJoinRoom", (peerId) => {
+    socket.on("peerJoinRoom", (peerId, userNick, streamId) => {
       socket.peerId = peerId;
+      socket.userNick = userNick;
+      socket.streamId = streamId;
       const roomId = socket.roomId;
       console.log(`peerId ${peerId}`);
-      socket.broadcast.to(roomId).emit("user-connected", peerId);
+      socket.broadcast
+        .to(roomId)
+        .emit("user-connected", peerId, userNick, streamId);
     });
 
     // 방 들어가기
@@ -141,7 +145,14 @@ module.exports = (server) => {
 
       socket.emit("roomList", rooms);
 
-      socket.broadcast.to(roomId).emit("user-disconnected", socket.peerId);
+      socket.broadcast
+        .to(roomId)
+        .emit(
+          "user-disconnected",
+          socket.peerId,
+          socket.userNick,
+          socket.streamId
+        );
     });
 
     // 준비하기
@@ -210,7 +221,7 @@ module.exports = (server) => {
             job.push(1, 2, 3, 4);
             break;
           case 5:
-            job.push(1, 1, 1, 2, 4);
+            job.push(1, 1, 2, 3, 4);
             break;
           case 6:
             job.push(1, 1, 1, 2, 3, 4);
