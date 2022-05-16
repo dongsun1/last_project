@@ -613,17 +613,18 @@ module.exports = (server) => {
       const roomId = socket.roomId;
       const day = await Room.findOne({ roomId });
 
+      let chance = true;
+
       if (data.clickerJob === "reporter") {
         const reporter = await Job.findOne({
           roomId,
           userId: data.clickerId,
         });
 
-        // 기회가 없을 시
-        if (!reporter.chance) {
-          socket.emit("reporterOver");
-        }
-      } else {
+        chance = reporter.chance;
+      }
+
+      if (chance) {
         await Vote.create({
           roomId: socket.roomId,
           userSocketId: socket.id,
@@ -632,6 +633,8 @@ module.exports = (server) => {
           clickedId: data.clickedId,
           day: !day.night,
         });
+      } else {
+        socket.emit("reporterOver");
       }
 
       if (day.night) {
