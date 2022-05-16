@@ -618,17 +618,23 @@ module.exports = (server) => {
         day: !day.night,
       });
 
-      if (!day.night) {
+      if (day.night) {
         // 경찰
         if (data.clickerJob === "police") {
           const clickedUser = await Job.findOne({
             roomId,
             userId: data.clickedId,
           });
-          console.log(
-            `경찰이 지목한 사람의 직업은 ${data.clickedId} ${clickedUser.userJob}입니다.`
-          );
-          socket.emit("police", clickedUser.userJob);
+
+          if (clickedUser.userJob === "mafia") {
+            console.log(`경찰이 지목한 사람은 ${data.clickedId} 마피아입니다.`);
+            socket.emit("police", true);
+          } else {
+            console.log(
+              `경찰이 지목한 사람은 ${data.clickedId} 마피아가 아닙니다.`
+            );
+            socket.emit("police", false);
+          }
         }
       }
     });
