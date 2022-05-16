@@ -433,29 +433,21 @@ module.exports = (server) => {
 
                   // 기자
                   if (votes[i].clickerJob === "reporter") {
-                    const reporter = await Job.findOne({
+                    const clickedUser = await Job.findOne({
                       roomId,
-                      userId: votes[i].clickerId,
+                      userId: votes[i].clickedId,
                     });
-                    if (reporter.chance) {
-                      const clickedUser = await Job.findOne({
-                        roomId,
-                        userId: votes[i].clickedId,
-                      });
-                      await Job.updateOne(
-                        { roomId, userId: votes[i].clickerId },
-                        { $set: { chance: false } }
-                      );
-                      console.log(
-                        `기자가 지목한 ${clickedUser.userId}의 직업은 ${clickedUser.userJob}입니다.`
-                      );
-                      io.to(roomId).emit("reporter", {
-                        clickerJob: clickedUser.userJob,
-                        clickerId: clickedUser.userId,
-                      });
-                    } else {
-                      socket.emit("reporter");
-                    }
+                    await Job.updateOne(
+                      { roomId, userId: votes[i].clickerId },
+                      { $set: { chance: false } }
+                    );
+                    console.log(
+                      `기자가 지목한 ${clickedUser.userId}의 직업은 ${clickedUser.userJob}입니다.`
+                    );
+                    io.to(roomId).emit("reporter", {
+                      clickerJob: clickedUser.userJob,
+                      clickerId: clickedUser.userId,
+                    });
                   }
 
                   // 저격수
@@ -621,14 +613,26 @@ module.exports = (server) => {
       const roomId = socket.roomId;
       const day = await Room.findOne({ roomId });
 
-      await Vote.create({
-        roomId: socket.roomId,
-        userSocketId: socket.id,
-        clickerJob: data.clickerJob,
-        clickerId: data.clickerId,
-        clickedId: data.clickedId,
-        day: !day.night,
-      });
+      if (data.clickerJob === "reporter") {
+        const reporter = await Job.findOne({
+          roomId,
+          userId: data.clickerId,
+        });
+
+        // 기회가 없을 시
+        if (!reporter.chance) {
+          socket.emit("reporter");
+        }
+      } else {
+        await Vote.create({
+          roomId: socket.roomId,
+          userSocketId: socket.id,
+          clickerJob: data.clickerJob,
+          clickerId: data.clickerId,
+          clickedId: data.clickedId,
+          day: !day.night,
+        });
+      }
 
       if (day.night) {
         // 경찰
