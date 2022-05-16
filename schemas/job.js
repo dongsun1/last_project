@@ -25,6 +25,10 @@ const jobSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  chance: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 module.exports = mongoose.model("Job", jobSchema);

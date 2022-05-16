@@ -433,17 +433,29 @@ module.exports = (server) => {
 
                   // 기자
                   if (votes[i].clickerJob === "reporter") {
-                    const clickedUser = await Job.findOne({
+                    const reporter = await Job.findOne({
                       roomId,
-                      userId: votes[i].clickedId,
+                      userId: votes[i].clickerId,
                     });
-                    console.log(
-                      `기자가 지목한 ${clickedUser.userId}의 직업은 ${clickedUser.userJob}입니다.`
-                    );
-                    io.to(roomId).emit("reporter", {
-                      clickerJob: clickedUser.userJob,
-                      clickerId: clickedUser.userId,
-                    });
+                    if (reporter.chance) {
+                      const clickedUser = await Job.findOne({
+                        roomId,
+                        userId: votes[i].clickedId,
+                      });
+                      await Job.updateOne(
+                        { roomId, userId: votes[i].clickerId },
+                        { $set: { chance: false } }
+                      );
+                      console.log(
+                        `기자가 지목한 ${clickedUser.userId}의 직업은 ${clickedUser.userJob}입니다.`
+                      );
+                      io.to(roomId).emit("reporter", {
+                        clickerJob: clickedUser.userJob,
+                        clickerId: clickedUser.userId,
+                      });
+                    } else {
+                      socket.emit("reporter");
+                    }
                   }
 
                   // 저격수
