@@ -613,7 +613,14 @@ module.exports = (server) => {
       const roomId = socket.roomId;
       const day = await Room.findOne({ roomId });
 
-      let chance = true;
+      await Vote.create({
+        roomId: socket.roomId,
+        userSocketId: socket.id,
+        clickerJob: data.clickerJob,
+        clickerId: data.clickerId,
+        clickedId: data.clickedId,
+        day: !day.night,
+      });
 
       if (data.clickerJob === "reporter") {
         const reporter = await Job.findOne({
@@ -621,20 +628,20 @@ module.exports = (server) => {
           userId: data.clickerId,
         });
 
-        chance = reporter.chance;
-      }
+        const chance = reporter.chance;
 
-      if (chance) {
-        await Vote.create({
-          roomId: socket.roomId,
-          userSocketId: socket.id,
-          clickerJob: data.clickerJob,
-          clickerId: data.clickerId,
-          clickedId: data.clickedId,
-          day: !day.night,
-        });
-      } else {
-        socket.emit("reporterOver");
+        if (day.night && !chance) {
+          await Vote.deleteOne({
+            roomId: socket.roomId,
+            userSocketId: socket.id,
+            clickerJob: data.clickerJob,
+            clickerId: data.clickerId,
+            clickedId: data.clickedId,
+            day: !day.night,
+          });
+
+          socket.emit("reporterOver");
+        }
       }
 
       if (day.night) {
