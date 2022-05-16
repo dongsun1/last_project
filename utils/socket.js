@@ -618,7 +618,7 @@ module.exports = (server) => {
         day: !day.night,
       });
 
-      if (day.night) {
+      if (!day.night) {
         // 경찰
         if (data.clickerJob === "police") {
           const clickedUser = await Job.findOne({
