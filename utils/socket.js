@@ -621,7 +621,7 @@ module.exports = (server) => {
 
         // 기회가 없을 시
         if (!reporter.chance) {
-          socket.emit("reporter");
+          socket.emit("reporterOver");
         }
       } else {
         await Vote.create({
