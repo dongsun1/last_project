@@ -133,12 +133,7 @@ module.exports = (server) => {
         await Room.deleteOne({ roomId });
         socket.emit("leaveRoomMsg", socket.id);
       } else {
-        let cap = roomUpdate.userId;
-        if (cap === socket.userId) {
-          cap = roomUpdate.currentPeople[0];
-          await Room.updateOne({ roomId }, { $set: { userId: cap } });
-        }
-        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userId, cap);
+        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userId);
       }
 
       const rooms = await Room.find({});
