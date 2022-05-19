@@ -6,11 +6,9 @@ const User = require("../../schemas/user/user");
 // 프로필 사진 가져오기
 router.get("/profile", authMiddleWare, async (req, res) => {
   try {
-    const { userId } = res.locals.user;
+    const { userId } = res.locals.user[0];
 
     const user = await User.findOne({ userId });
-    console.log(userId);
-    console.log(user.userProfile);
     res.status(200).json({ result: true, profile: user.userProfile });
   } catch (e) {
     res.status(400).json({ result: false, msg: "실패" });
