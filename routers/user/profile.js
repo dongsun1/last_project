@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
-
-const authMiddleware = require("../middleware/authMiddleWare");
-
-const User = require("../schemas/user/user");
+const authMiddleWare = require("../../middleware/authMiddleWare");
+const User = require("../../schemas/user/user");
 
 // 프로필 사진 가져오기
-router.get("/profile", authMiddleware, async (req, res) => {
+router.get("/profile", authMiddleWare, async (req, res) => {
   try {
     const { userId } = res.locals.user;
 
@@ -19,7 +17,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
 });
 
 // 프로필 수정
-router.post("/profile", authMiddleware, async (req, res) => {
+router.post("/profile", authMiddleWare, async (req, res) => {
   try {
     const { userId } = res.locals.user;
     const { profile } = req.body;
