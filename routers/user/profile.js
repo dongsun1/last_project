@@ -19,7 +19,7 @@ router.get("/profile", authMiddleWare, async (req, res) => {
 // 프로필 수정
 router.post("/profile", authMiddleWare, async (req, res) => {
   try {
-    const { userId } = res.locals.user;
+    const { userId } = res.locals.user[0];
     const { profile } = req.body;
 
     await User.updateOne(
