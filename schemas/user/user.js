@@ -16,7 +16,7 @@ const userSchema = mongoose.Schema({
     type: String,
   },
   userProfile: {
-    type: String,
+    type: Number,
   },
   userWin: {
     type: Number,

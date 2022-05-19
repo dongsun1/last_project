@@ -6,6 +6,19 @@ const { upload } = require("../middleware/upload");
 
 const User = require("../schemas/user/user");
 
+// 프로필 사진 가져오기
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = res.locals.user;
+
+    const user = await User.findOne({ userId });
+    res.status(200).send({ result: true, profile: user.profile });
+  } catch (e) {
+    res.status(400).send({ result: false, msg: "실패" });
+    console.log("profile.js에서 에러남");
+  }
+});
+
 // 프로필 수정
 router.post("/profile", authMiddleware, async (req, res) => {
   try {
