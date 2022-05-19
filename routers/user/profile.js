@@ -22,7 +22,10 @@ router.post("/profile", authMiddleWare, async (req, res) => {
     const { userId } = res.locals.user;
     const { profile } = req.body;
 
-    await User.updateOne({ userId }, { $set: { userProfile: profile } });
+    await User.updateOne(
+      { userId },
+      { $set: { userProfile: Number(profile) } }
+    );
     res.status(200).json({ result: true, msg: "등록 성공" });
   } catch (error) {
     console.log(error);
