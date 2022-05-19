@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleWare");
-const { upload } = require("../middleware/upload");
 
 const User = require("../schemas/user/user");
 

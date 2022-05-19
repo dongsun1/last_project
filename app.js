@@ -61,6 +61,7 @@ const changePwRouter = require("./routers/user/changePw");
 const friendListRouter = require("./routers/user/friendList");
 const naverRouter = require("./routers/user/naverLogin");
 const googleRouter = require("./routers/user/googleLogin");
+const profileRouter = require("./routers/user/profile");
 
 app.use(cors());
 app.use(helmet());
@@ -84,6 +85,7 @@ app.use("/user", [
   findPwRouter,
   changePwRouter,
   friendListRouter,
+  profileRouter,
 ]);
 
 app.use("", [kakaoRouter, naverRouter, googleRouter]);
