@@ -17,6 +17,7 @@ const userSchema = mongoose.Schema({
   },
   userProfile: {
     type: Number,
+    default: 0,
   },
   userWin: {
     type: Number,
