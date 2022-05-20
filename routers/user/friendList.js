@@ -59,6 +59,29 @@ router.post("/friendAdd", authMiddleWare, async (req, res) => {
   });
 });
 
+//친구 삭제
+router.post("/friendRemove", authMiddleWare, async (req, res) => {
+  const removeUserId = req.body;
+  console.log(removeUserId.removeUserId);
+  const { user } = res.locals;
+  // console.log('user->', user);
+  const userId = user[0].userId;
+
+  const remove = await User.updateOne(
+    {userId: userId},
+    {$pull : {friendList: {userId: removeUserId.removeUserId}}}
+    );
+  console.log('removeDB :', remove);
+  const userInfo = await User.findOne({userId:userId});
+  const friendList = userInfo.friendList
+  console.log('friendList :', friendList)
+  res.status(200).send({
+    msg: '친구삭제 완료',
+    friendList
+  });
+ 
+});
+
 //친구목록 조회
 router.post("/friendList", authMiddleWare, async (req, res) => {
   console.log("user/friendList router");
