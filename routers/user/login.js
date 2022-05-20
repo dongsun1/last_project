@@ -15,8 +15,8 @@ router.post("/login", async (req, res) => {
   const user = await User.findOne({ userId });
   console.log("user-->", user);
 
-  // body passowrd = unHashPassword -->true
-  const unHashPw = await bcrypt.compareSync(userPw, user.userPw);
+  // body password = unHashPassword -->true
+  const unHashPw = bcrypt.compareSync(userPw, user.userPw);
   console.log("unHashPw->", unHashPw); // true or false
   // userId, password 없는경우
   if (user.userId !== userId || unHashPw == false) {
