@@ -5,7 +5,7 @@ const authMiddleware = require("../../middleware/authMiddleWare");
 
 router.post("/changeNick", authMiddleware, async (req, res) => {
     const { changeNick } = req.body;
-    // console.log('changeNick :', changeNick)
+    console.log('changeNick :', changeNick)
     const { user } = res.locals;
     const userId = user[0].userId;
     const userNick = user[0].userNick
@@ -39,11 +39,13 @@ router.post("/changeNick", authMiddleware, async (req, res) => {
         {$set: {userNick: changeNick},},
         {new : true}
         );
-    console.log('changeUserNick :', changeUserNick);
+        console.log('result',changeUserNick)
 
+    // const _userNick = await User.findOne({userId:userId})
+    // console.log(_userNick)
     res.status(200).send({
       msg: "닉네임 변경 완료",
-      userNick : changeUserNick.changeNick,
+      userNick : changeUserNick.userNick,
     });
 });
 
