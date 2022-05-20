@@ -61,15 +61,15 @@ router.post("/friendAdd", authMiddleWare, async (req, res) => {
 
 //친구 삭제
 router.post("/friendRemove", authMiddleWare, async (req, res) => {
-  const removeUserId = req.body;
-  console.log(removeUserId.removeUserId);
+  const { removeUserId } = req.body;
+  console.log(removeUserId);
   const { user } = res.locals;
   // console.log('user->', user);
   const userId = user[0].userId;
 
   const remove = await User.updateOne(
     {userId: userId},
-    {$pull : {friendList: {userId: removeUserId.removeUserId}}}
+    {$pull : {friendList: {userId: removeUserId}}}
     );
   console.log('removeDB :', remove);
   const userInfo = await User.findOne({userId:userId});
