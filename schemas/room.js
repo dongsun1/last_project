@@ -6,7 +6,7 @@ const roomSchema = mongoose.Schema({
     required: true,
     unique: true,
   },
-  userNick: {
+  userId: {
     type: String,
     required: true,
   },

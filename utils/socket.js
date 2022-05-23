@@ -59,7 +59,7 @@ module.exports = (server) => {
 
       const room = await Room.create({
         roomId: number,
-        userNick: socket.userNick,
+        userId: socket.userNick,
         roomTitle,
         roomPeople,
         password: roomPwd,
