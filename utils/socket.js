@@ -378,11 +378,11 @@ module.exports = (server) => {
                   if (voteResult[0][1] === voteResult[1][1]) {
                     // 투표 동률일 때
                     io.to(socket.roomId).emit("dayVoteResult", {
-                      id: "아무도 안죽음",
+                      id: "",
                       diedPeopleArr,
                       savedPeopleArr,
                     });
-                    console.log(`아무도 안죽음`);
+                    console.log("아무도 안죽음");
                   } else {
                     // 투표 동률이 아닐 때
                     io.to(socket.roomId).emit("dayVoteResult", {
