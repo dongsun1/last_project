@@ -15,7 +15,7 @@ router.post("/changeNick", authMiddleware, async (req, res) => {
     var userNickReg = /^([a-zA-Z0-9ㄱ-ㅎ|ㅏ-ㅣ|가-힣]).{1,15}$/; //2~15자 한글,영문,숫자
 
     const existUsers = await User.findOne({userNick:changeNick});
-    // console.log('existUser :',existUsers)
+    console.log('existUser :',existUsers)
 
     if (changeNick == "" || changeNick == undefined || changeNick == null) {
         res.status(400).send({
@@ -27,7 +27,7 @@ router.post("/changeNick", authMiddleware, async (req, res) => {
           errorMessage: "닉네임은 2~15자, 한글,영문 및 숫자만 가능합니다.",
         });
       return;
-    } else if (existUsers) {
+    } else if (existUsers !== undefined || existUsers !== null || existUsers.length !== 0) {
         res.status(400).send({
           errorMessage: "이미 가입된 닉네임 입니다.",
         });
