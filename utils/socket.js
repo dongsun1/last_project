@@ -365,6 +365,14 @@ module.exports = (server) => {
                   }
                 }
 
+                const isMafiaUser = await Job.find({
+                  userId: voteResult[0][0],
+                });
+                let isMafia = false;
+                if (isMafiaUser.userJob === "mafia") {
+                  isMafia = true;
+                }
+
                 if (voteResult.length !== 1) {
                   // 1명만 투표된게 아닐 때
                   if (voteResult[0][1] === voteResult[1][1]) {
@@ -373,6 +381,7 @@ module.exports = (server) => {
                       id: "아무도 안죽음",
                       diedPeopleArr,
                       savedPeopleArr,
+                      isMafia,
                     });
                     console.log(`아무도 안죽음`);
                   } else {
@@ -381,6 +390,7 @@ module.exports = (server) => {
                       id: voteResult[0][0],
                       diedPeopleArr,
                       savedPeopleArr,
+                      isMafia,
                     });
                     console.log(`${voteResult[0][0]} 죽음`);
                     await Job.updateOne(
@@ -394,6 +404,7 @@ module.exports = (server) => {
                     id: voteResult[0][0],
                     diedPeopleArr,
                     savedPeopleArr,
+                    isMafia,
                   });
                   console.log(`${voteResult[0][0]} 죽음`);
                   await Job.updateOne(
@@ -521,8 +532,8 @@ module.exports = (server) => {
               const endGameUserId = [];
               const endGameUserJob = [];
               for (let i = 0; i < endGame.length; i++) {
-                endGameUserId.push(endGame.userId);
-                endGameUserJob.push(endGame.userJob);
+                endGameUserId.push(endGame[i].userId);
+                endGameUserJob.push(endGame[i].userJob);
               }
 
               let msg = "";
@@ -539,7 +550,7 @@ module.exports = (server) => {
                     } else {
                       await User.updateOne(
                         { userId: endGameUserId[i] },
-                        { $inc: { userWin: -1 }, $set: { ready: false } }
+                        { $inc: { userLose: 1 }, $set: { ready: false } }
                       );
                     }
                   }
@@ -555,7 +566,7 @@ module.exports = (server) => {
                     } else {
                       await User.updateOne(
                         { userId: endGameUserId[i] },
-                        { $inc: { userWin: -1 }, $set: { ready: false } }
+                        { $inc: { userLose: 1 }, $set: { ready: false } }
                       );
                     }
                   }
