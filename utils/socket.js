@@ -368,6 +368,7 @@ module.exports = (server) => {
                 const isMafiaUser = await Job.find({
                   userId: voteResult[0][0],
                 });
+                console.log(isMafiaUser);
                 let isMafia = false;
                 if (isMafiaUser.userJob === "mafia") {
                   isMafia = true;
@@ -381,7 +382,6 @@ module.exports = (server) => {
                       id: "아무도 안죽음",
                       diedPeopleArr,
                       savedPeopleArr,
-                      isMafia,
                     });
                     console.log(`아무도 안죽음`);
                   } else {
