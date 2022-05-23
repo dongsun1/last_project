@@ -8,7 +8,7 @@ const { request } = require("http");
 
 const naver = {
     clientid: `${process.env.CLIENT_ID}`, //REST API
-    redirectUri: "http://localhost:3000/naverLogin/main",
+    redirectUri: "https://www.mafiyang.com/main",
     client_secret: `${process.env.CLIENT_SECRET}`,
     state: 'login'
   };
@@ -70,7 +70,7 @@ router.get('/naverLogin/main', async (req, res) => {
     console.log("loginUser-->", loginUser);
     var naverId = loginUser[0].userId
     var naverNick = loginUser[0].userNick
-    const token = jwt.sign({ userId: loginUser.userId }, `${process.env.KEY}`);
+    const token = jwt.sign({ userId: loginUser[0].userId }, `${process.env.KEY}`);
     console.log("token-->", token);
     res.status(200).send({
       token,
