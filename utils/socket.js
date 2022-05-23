@@ -528,29 +528,27 @@ module.exports = (server) => {
               const endGame = await Job.find({ roomId });
               const result = endGameCheck(endGame);
 
-              const endGameUserId = [];
-              const endGameUserJob = [];
-              for (let i = 0; i < endGame.length; i++) {
-                endGameUserId.push(endGame[i].userId);
-                endGameUserJob.push(endGame[i].userJob);
-              }
-
-              console.log(endGameUserId, endGameUserJob);
-
               let msg = "";
               if (result) {
+                const endGameUserId = [];
+                const endGameUserJob = [];
+                for (let i = 0; i < endGame.length; i++) {
+                  endGameUserId.push(endGame[i].userId);
+                  console.log(endGame[i].userId);
+                  endGameUserJob.push(endGame[i].userJob);
+                }
                 if (result === "시민 승") {
                   msg = "시민이 승리하였습니다.";
                   // 전적 업데이트
                   for (let i = 0; i < endGame.length; i++) {
                     if (endGameUserJob[i] !== "mafia") {
                       await User.updateOne(
-                        { userId: endGameUserId[i] },
+                        { userNick: endGameUserId[i] },
                         { $inc: { userWin: 1 }, $set: { ready: false } }
                       );
                     } else {
                       await User.updateOne(
-                        { userId: endGameUserId[i] },
+                        { userNick: endGameUserId[i] },
                         { $inc: { userLose: 1 }, $set: { ready: false } }
                       );
                     }
