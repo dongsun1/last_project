@@ -365,10 +365,9 @@ module.exports = (server) => {
                   }
                 }
 
-                const isMafiaUser = await Job.find({
+                const isMafiaUser = await Job.findOne({
                   userId: voteResult[0][0],
                 });
-                console.log(isMafiaUser);
                 let isMafia = false;
                 if (isMafiaUser.userJob === "mafia") {
                   isMafia = true;
