@@ -215,7 +215,7 @@ module.exports = (server) => {
         const userArr = room.currentPeopleSocketId;
         // 각 user 직업 부여
         const job = [];
-        // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:reporter, 6:sniper
+        // 1:citizen, 2:doctor, 3:police, 4:mafia, 5:reporter
         switch (userArr.length) {
           case 4:
             job.push(1, 1, 1, 4);
@@ -236,7 +236,7 @@ module.exports = (server) => {
             job.push(1, 1, 1, 1, 2, 3, 4, 4, 5);
             break;
           case 10:
-            job.push(1, 1, 1, 1, 2, 3, 4, 4, 5, 6);
+            job.push(1, 1, 1, 1, 1, 2, 3, 4, 4, 5);
             break;
         }
 
@@ -288,7 +288,7 @@ module.exports = (server) => {
           }
         }
 
-        let counter = 20;
+        let counter = 60;
         let first = true;
 
         // 타이머
@@ -345,7 +345,7 @@ module.exports = (server) => {
               if (!room.night) {
                 // 낮 투표 결과
                 console.log(`${roomId} 밤이 되었습니다.`);
-                counter = 20;
+                counter = 60;
 
                 await Vote.deleteMany({ roomId, day: false });
                 const votes = await Vote.find({ roomId, day: true });
@@ -419,7 +419,7 @@ module.exports = (server) => {
               } else {
                 // 밤 투표 결과
                 console.log(`${roomId} 낮이 되었습니다.`);
-                counter = 30;
+                counter = 120;
 
                 await Vote.deleteMany({ roomId, day: true });
                 const votes = await Vote.find({ roomId, day: false });

@@ -15,16 +15,27 @@ router.post("/login", async (req, res) => {
   const user = await User.findOne({ userId });
   console.log("user-->", user);
 
-  // body password = unHashPassword -->true
-  const unHashPw = bcrypt.compareSync(userPw, user.userPw);
-  console.log("unHashPw->", unHashPw); // true or false
-  // userId, password 없는경우
-  if (!user || unHashPw == false) {
+  if (!user) {
     res.status(400).send({
       errorMessage: "아이디 또는 비밀번호가 틀렸습니다.",
     });
-    return;
+  } else {
+    const unHashPw = bcrypt.compareSync(userPw, user.userPw);
+    if (unHashPw === false) {
+      res.status(400).send({
+        errorMessage: "아이디 또는 비밀번호가 틀렸습니다.",
+      });
+    }
   }
+  // body password = unHashPassword -->true
+  // console.log("unHashPw->", unHashPw); // true or false
+  // userId, password 없는경우
+  // if (!user || unHashPw == false) {
+  //   res.status(400).send({
+  //     errorMessage: "아이디 또는 비밀번호가 틀렸습니다.",
+  //   });
+  //   return;
+  // }
 
   const token = jwt.sign({ userId: user.userId }, `${process.env.KEY}`);
   // console.log('webtoken-->',token)
