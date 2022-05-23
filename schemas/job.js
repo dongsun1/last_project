@@ -9,7 +9,7 @@ const jobSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  userId: {
+  userNick: {
     type: String,
     required: true,
   },

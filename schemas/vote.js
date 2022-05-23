@@ -13,11 +13,11 @@ const voteSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  clickerId: {
+  clickerNick: {
     type: String,
     required: true,
   },
-  clickedId: {
+  clickedNick: {
     type: String,
     required: true,
   },

@@ -11,9 +11,9 @@ module.exports = (server) => {
     console.log("connection: ", socket.id);
 
     // 아이디 받아오기
-    socket.on("main", (userId) => {
-      console.log(`아이디 받아오기: ${userId}`);
-      socket.userId = userId;
+    socket.on("main", (userNick) => {
+      console.log(`닉네임 받아오기: ${userNick}`);
+      socket.userNick = userNick;
     });
 
     // 방 리스트
@@ -30,16 +30,19 @@ module.exports = (server) => {
 
       if (night.night) {
         // 밤 마피아 채팅
-        console.log(`밤 msg: ${msg}, id: ${socket.userId}`);
+        console.log(`밤 msg: ${msg}, nick: ${socket.userNick}`);
         const userJob = "mafia";
         const mafia = await Job.find({ roomId, userJob });
         for (let i = 0; i < mafia.length; i++) {
-          io.to(mafia[i].userSocketId).emit("msg", { msg, id: socket.userId });
+          io.to(mafia[i].userSocketId).emit("msg", {
+            msg,
+            id: socket.userNick,
+          });
         }
       } else {
         // 낮 채팅
-        console.log(`낮 msg: ${msg}, id: ${socket.userId}`);
-        io.to(socket.roomId).emit("msg", { msg, id: socket.userId });
+        console.log(`낮 msg: ${msg}, id: ${socket.userNick}`);
+        io.to(socket.roomId).emit("msg", { msg, id: socket.userNick });
       }
     });
 
@@ -56,14 +59,14 @@ module.exports = (server) => {
 
       const room = await Room.create({
         roomId: number,
-        userId: socket.userId,
+        userNick: socket.userNick,
         roomTitle,
         roomPeople,
         password: roomPwd,
       });
 
       console.log(
-        `방 만들기: ${number}, ${socket.userId}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
+        `방 만들기: ${number}, ${socket.userNick}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
       );
 
       socket.emit("roomData", room);
@@ -83,7 +86,7 @@ module.exports = (server) => {
 
     // 방 들어가기
     socket.on("joinRoom", async (roomId) => {
-      console.log(`${socket.userId}님이 ${roomId}에 입장하셨습니다.`);
+      console.log(`${socket.userNick}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
 
@@ -92,7 +95,7 @@ module.exports = (server) => {
         { roomId },
         {
           $push: {
-            currentPeople: socket.userId,
+            currentPeople: socket.userNick,
             currentPeopleSocketId: socket.id,
           },
         }
@@ -102,7 +105,7 @@ module.exports = (server) => {
 
       io.to(roomId).emit(
         "joinRoomMsg",
-        socket.userId,
+        socket.userNick,
         room.currentPeopleSocketId,
         room.currentPeople
       );
@@ -110,7 +113,9 @@ module.exports = (server) => {
 
     // 방 나가기
     socket.on("leaveRoom", async () => {
-      console.log(`${socket.userId}님이 ${socket.roomId}에서 퇴장하셨습니다.`);
+      console.log(
+        `${socket.userNick}님이 ${socket.roomId}에서 퇴장하셨습니다.`
+      );
 
       const roomId = socket.roomId;
       socket.leave(roomId);
@@ -120,7 +125,7 @@ module.exports = (server) => {
         { roomId },
         {
           $pull: {
-            currentPeople: socket.userId,
+            currentPeople: socket.userNick,
             currentPeopleSocketId: socket.id,
           },
         }
@@ -133,7 +138,7 @@ module.exports = (server) => {
         await Room.deleteOne({ roomId });
         socket.emit("leaveRoomMsg", socket.id);
       } else {
-        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userId);
+        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userNick);
       }
 
       const rooms = await Room.find({});
@@ -154,16 +159,16 @@ module.exports = (server) => {
     socket.on("ready", async (ready) => {
       const roomId = socket.roomId;
       if (ready) {
-        console.log(`${socket.userId} 준비완료`);
+        console.log(`${socket.userNick} 준비완료`);
         await Room.updateOne(
           { roomId },
-          { $push: { currentReadyPeople: socket.userId } }
+          { $push: { currentReadyPeople: socket.userNick } }
         );
       } else {
-        console.log(`${socket.userId} 준비해제`);
+        console.log(`${socket.userNick} 준비해제`);
         await Room.updateOne(
           { roomId },
-          { $pull: { currentReadyPeople: socket.userId } }
+          { $pull: { currentReadyPeople: socket.userNick } }
         );
       }
 
@@ -177,7 +182,7 @@ module.exports = (server) => {
 
       await Room.updateOne(
         { roomId },
-        { $push: { currentReadyPeople: socket.userId } }
+        { $push: { currentReadyPeople: socket.userNick } }
       );
       const ready = await Room.findOne({ roomId });
 
@@ -269,7 +274,7 @@ module.exports = (server) => {
             await Job.create({
               roomId,
               userSocketId: userArr[i],
-              userId: room.currentPeople[i],
+              userNick: room.currentPeople[i],
               userJob: playerJob[i],
               AI: true,
             });
@@ -277,7 +282,7 @@ module.exports = (server) => {
             await Job.create({
               roomId,
               userSocketId: userArr[i],
-              userId: room.currentPeople[i],
+              userNick: room.currentPeople[i],
               userJob: playerJob[i],
             });
           }
@@ -348,7 +353,7 @@ module.exports = (server) => {
                 const clickedArr = [];
 
                 for (let i = 0; i < votes.length; i++) {
-                  clickedArr.push(votes[i].clickedId);
+                  clickedArr.push(votes[i].clickedNick);
                 }
 
                 // 투표 결과
@@ -359,14 +364,14 @@ module.exports = (server) => {
                 const savedPeopleArr = [];
                 for (let i = 0; i < diedPeople.length; i++) {
                   if (!diedPeople[i].save) {
-                    diedPeopleArr.push(diedPeople[i].userId);
+                    diedPeopleArr.push(diedPeople[i].userNick);
                   } else {
-                    savedPeopleArr.push(diedPeople[i].userId);
+                    savedPeopleArr.push(diedPeople[i].userNick);
                   }
                 }
 
                 const isMafiaUser = await Job.findOne({
-                  userId: voteResult[0][0],
+                  userNick: voteResult[0][0],
                 });
                 let isMafia = false;
                 if (isMafiaUser.userJob === "mafia") {
@@ -393,7 +398,7 @@ module.exports = (server) => {
                     });
                     console.log(`${voteResult[0][0]} 죽음`);
                     await Job.updateOne(
-                      { roomId, userId: voteResult[0][0] },
+                      { roomId, userNick: voteResult[0][0] },
                       { $set: { save: false } }
                     );
                   }
@@ -407,7 +412,7 @@ module.exports = (server) => {
                   });
                   console.log(`${voteResult[0][0]} 죽음`);
                   await Job.updateOne(
-                    { roomId, userId: voteResult[0][0] },
+                    { roomId, userNick: voteResult[0][0] },
                     { $set: { save: false } }
                   );
                 }
@@ -427,31 +432,31 @@ module.exports = (server) => {
                   // 마피아
                   if (votes[i].clickerJob === "mafia") {
                     await Job.updateOne(
-                      { roomId, userId: votes[i].clickedId },
+                      { roomId, userNick: votes[i].clickedNick },
                       { $set: { save: false } }
                     );
                     console.log(
-                      `${votes[i].clickedId}님이 마피아에 의해 살해당했습니다.`
+                      `${votes[i].clickedNick}님이 마피아에 의해 살해당했습니다.`
                     );
-                    died.push(votes[i].clickedId);
+                    died.push(votes[i].clickedNick);
                   }
 
                   // 기자
                   if (votes[i].clickerJob === "reporter") {
                     const clickedUser = await Job.findOne({
                       roomId,
-                      userId: votes[i].clickedId,
+                      userNick: votes[i].clickedNick,
                     });
                     await Job.updateOne(
-                      { roomId, userId: votes[i].clickerId },
+                      { roomId, userNick: votes[i].clickerNick },
                       { $set: { chance: false } }
                     );
                     console.log(
-                      `기자가 지목한 ${clickedUser.userId}의 직업은 ${clickedUser.userJob}입니다.`
+                      `기자가 지목한 ${clickedUser.userNick}의 직업은 ${clickedUser.userJob}입니다.`
                     );
                     io.to(roomId).emit("reporter", {
                       clickerJob: clickedUser.userJob,
-                      clickerId: clickedUser.userId,
+                      clickerNick: clickedUser.userNick,
                     });
                   }
 
@@ -486,17 +491,17 @@ module.exports = (server) => {
                   if (votes[i].clickerJob === "doctor") {
                     const clickedUser = await Job.findOne({
                       roomId,
-                      userId: votes[i].clickedId,
+                      userNick: votes[i].clickedNick,
                     });
                     if (!clickedUser.save) {
                       await Job.updateOne(
-                        { roomId, userId: votes[i].clickedId },
+                        { roomId, userNick: votes[i].clickedNick },
                         { $set: { save: true } }
                       );
                       console.log(
-                        `${votes[i].clickedId}님이 의사에 의해 치료되었습니다.`
+                        `${votes[i].clickedNick}님이 의사에 의해 치료되었습니다.`
                       );
-                      saved.push(votes[i].clickedId);
+                      saved.push(votes[i].clickedNick);
                     }
                   }
                 }
@@ -509,9 +514,9 @@ module.exports = (server) => {
                 const savedPeopleArr = [];
                 for (let i = 0; i < diedPeople.length; i++) {
                   if (!diedPeople[i].save) {
-                    diedPeopleArr.push(diedPeople[i].userId);
+                    diedPeopleArr.push(diedPeople[i].userNick);
                   } else {
-                    savedPeopleArr.push(diedPeople[i].userId);
+                    savedPeopleArr.push(diedPeople[i].userNick);
                   }
                 }
 
@@ -530,11 +535,10 @@ module.exports = (server) => {
 
               let msg = "";
               if (result) {
-                const endGameUserId = [];
+                const endGameUserNick = [];
                 const endGameUserJob = [];
                 for (let i = 0; i < endGame.length; i++) {
-                  endGameUserId.push(endGame[i].userId);
-                  console.log(endGame[i].userId);
+                  endGameUserNick.push(endGame[i].userNick);
                   endGameUserJob.push(endGame[i].userJob);
                 }
                 if (result === "시민 승") {
@@ -543,12 +547,12 @@ module.exports = (server) => {
                   for (let i = 0; i < endGame.length; i++) {
                     if (endGameUserJob[i] !== "mafia") {
                       await User.updateOne(
-                        { userNick: endGameUserId[i] },
+                        { userNick: endGameUserNick[i] },
                         { $inc: { userWin: 1 }, $set: { ready: false } }
                       );
                     } else {
                       await User.updateOne(
-                        { userNick: endGameUserId[i] },
+                        { userNick: endGameUserNick[i] },
                         { $inc: { userLose: 1 }, $set: { ready: false } }
                       );
                     }
@@ -559,12 +563,12 @@ module.exports = (server) => {
                   for (let i = 0; i < endGame.length; i++) {
                     if (endGameUserJob[i] === "mafia") {
                       await User.updateOne(
-                        { userId: endGameUserId[i] },
+                        { userNick: endGameUserNick[i] },
                         { $inc: { userWin: 1 }, $set: { ready: false } }
                       );
                     } else {
                       await User.updateOne(
-                        { userId: endGameUserId[i] },
+                        { userNick: endGameUserNick[i] },
                         { $inc: { userLose: 1 }, $set: { ready: false } }
                       );
                     }
@@ -622,15 +626,15 @@ module.exports = (server) => {
         roomId: socket.roomId,
         userSocketId: socket.id,
         clickerJob: data.clickerJob,
-        clickerId: data.clickerId,
-        clickedId: data.clickedId,
+        clickerNick: data.clickerId,
+        clickedNick: data.clickedId,
         day: !day.night,
       });
 
       if (data.clickerJob === "reporter") {
         const reporter = await Job.findOne({
           roomId,
-          userId: data.clickerId,
+          userNick: data.clickerId,
         });
 
         const chance = reporter.chance;
@@ -640,8 +644,8 @@ module.exports = (server) => {
             roomId: socket.roomId,
             userSocketId: socket.id,
             clickerJob: data.clickerJob,
-            clickerId: data.clickerId,
-            clickedId: data.clickedId,
+            clickerNick: data.clickerId,
+            clickedNick: data.clickedId,
             day: !day.night,
           });
 
@@ -654,7 +658,7 @@ module.exports = (server) => {
         if (data.clickerJob === "police") {
           const clickedUser = await Job.findOne({
             roomId,
-            userId: data.clickedId,
+            userNick: data.clickedId,
           });
 
           if (clickedUser.userJob === "mafia") {
