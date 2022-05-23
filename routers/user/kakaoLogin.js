@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 
 const kakao = {
   clientid: `${process.env.CLIENTID}`, //REST API
-  redirectUri: "https://d191gfhy5yq8br.cloudfront.net/main",
+  redirectUri: "https://www.mafiyang.com/main",
 };
 // kakao login page URL
 router.get("/kakaoLogin", (req, res) => {
@@ -62,14 +62,14 @@ router.get("/main", async (req, res) => {
 
   const loginUser = await User.find({ userId });
   console.log("loginUser-->", loginUser);
-  const token = jwt.sign({ userId: loginUser.userId }, `${process.env.KEY}`);
+  const token = jwt.sign({ userId: loginUser[0].userId }, `${process.env.KEY}`);
   console.log("kakaotoken-->", token);
   res.status(200).send({
     token,
     userId,
     userNick,
   });
-  console.log("User-->", token, userId, userNick);
+  // console.log("User-->", token, userId, userNick);
 });
 
 module.exports = router;
