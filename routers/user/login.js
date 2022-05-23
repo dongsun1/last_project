@@ -19,7 +19,7 @@ router.post("/login", async (req, res) => {
   const unHashPw = bcrypt.compareSync(userPw, user.userPw);
   console.log("unHashPw->", unHashPw); // true or false
   // userId, password 없는경우
-  if (user.userId !== userId || unHashPw == false) {
+  if (!user || unHashPw == false) {
     res.status(400).send({
       errorMessage: "아이디 또는 비밀번호가 틀렸습니다.",
     });
@@ -31,7 +31,7 @@ router.post("/login", async (req, res) => {
   res.status(200).send({
     token,
     userId,
-    userNick : user.userNick,
+    userNick: user.userNick,
   });
 });
 
