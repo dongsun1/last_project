@@ -528,15 +528,14 @@ module.exports = (server) => {
               const endGame = await Job.find({ roomId });
               const result = endGameCheck(endGame);
 
-              console.log(endGame);
-              console.log(result);
-
               const endGameUserId = [];
               const endGameUserJob = [];
               for (let i = 0; i < endGame.length; i++) {
                 endGameUserId.push(endGame[i].userId);
                 endGameUserJob.push(endGame[i].userJob);
               }
+
+              console.log(endGameUserId, endGameUserJob);
 
               let msg = "";
               if (result) {
