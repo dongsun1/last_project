@@ -112,50 +112,61 @@ router.post("/idCheck", async (req, res) => {
   const { idCheck } = req.body;
   // console.log('idCheck :', idCheck)
   const existUserId = await User.findOne({ userId: idCheck });
-  let msg = '';
-  if (existUserId == undefined || existUserId == null || existUserId.length == 0) {
+  let msg = "";
+  if (
+    existUserId == undefined ||
+    existUserId == null ||
+    existUserId.length == 0
+  ) {
     res.status(200).send({
-      msg : '사용할 수 있는 아이디 입니다.'
+      msg: "사용할 수 있는 아이디 입니다.",
     });
   } else {
     res.status(400).send({
-      msg : '이미 사용중인 아이디 입니다.'
+      msg: "이미 사용중인 아이디 입니다.",
     });
-  }; 
+  }
 });
 
 // 이메일 중복체크
 router.post("/emailCheck", async (req, res) => {
   const { emailCheck } = req.body;
-  console.log('emailCheck :', emailCheck)
+  console.log("emailCheck :", emailCheck);
   const existUserEmail = await User.findOne({ email: emailCheck });
-  let msg = '';
-  if (existUserEmail == undefined || existUserEmail == null || existUserEmail.length == 0) {
+  let msg = "";
+  if (
+    existUserEmail == undefined ||
+    existUserEmail == null ||
+    existUserEmail.length == 0
+  ) {
     res.status(200).send({
-      msg : '사용할 수 있는 이메일 입니다.'
+      msg: "사용할 수 있는 이메일 입니다.",
     });
   } else {
     res.status(400).send({
-      msg : '이미 사용중인 이메일 입니다.'
+      msg: "이미 사용중인 이메일 입니다.",
     });
-  }; 
+  }
 });
 
 // 닉네임 중복체크
 router.post("/userNickCheck", async (req, res) => {
   const { userNickCheck } = req.body;
-  console.log('userNickCheck :', userNickCheck)
+  console.log("userNickCheck :", userNickCheck);
   const existUserNick = await User.findOne({ userNick: userNickCheck });
-  let msg = '';
-  if (existUserNick == undefined || existUserNick == null || existUserNick.length == 0) {
+  if (
+    existUserNick == undefined ||
+    existUserNick == null ||
+    existUserNick.length == 0
+  ) {
     res.status(200).send({
-      msg : '사용할 수 있는 닉네임 입니다.'
+      msg: "사용할 수 있는 닉네임 입니다.",
     });
   } else {
     res.status(400).send({
-      msg : '이미 사용중인 닉네임 입니다.'
+      msg: "이미 사용중인 닉네임 입니다.",
     });
-  }; 
+  }
 });
 
 module.exports = router;
