@@ -27,6 +27,12 @@ router.post("/login", async (req, res) => {
       });
     }
   }
+
+  if (user.login) {
+    res.status(400).send({
+      errorMessage: "이미 로그인 되어 있습니다.",
+    });
+  }
   // body password = unHashPassword -->true
   // console.log("unHashPw->", unHashPw); // true or false
   // userId, password 없는경우
@@ -39,10 +45,20 @@ router.post("/login", async (req, res) => {
 
   const token = jwt.sign({ userId: user.userId }, `${process.env.KEY}`);
   // console.log('webtoken-->',token)
+  await User.updateOne({ userId }, { $set: { login: true } });
   res.status(200).send({
     token,
     userId,
     userNick: user.userNick,
+  });
+});
+
+router.get("/logout", authMiddleWare, (req, res) => {
+  const { user } = res.locals;
+  const userId = user[0].userId;
+  await User.updateOne({ userId }, { $set: { login: false } });
+  res.status(200).send({
+    msg: '로그아웃 성공'
   });
 });
 
