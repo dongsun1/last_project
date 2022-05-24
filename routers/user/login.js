@@ -53,12 +53,12 @@ router.post("/login", async (req, res) => {
   });
 });
 
-router.get("/logout", authMiddleWare, (req, res) => {
+router.get("/logout", authMiddleWare, async (req, res) => {
   const { user } = res.locals;
   const userId = user[0].userId;
   await User.updateOne({ userId }, { $set: { login: false } });
   res.status(200).send({
-    msg: '로그아웃 성공'
+    msg: "로그아웃 성공",
   });
 });
 
