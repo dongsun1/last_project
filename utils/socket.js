@@ -10,7 +10,7 @@ module.exports = (server) => {
   io.on("connection", (socket) => {
     console.log("connection: ", socket.id);
 
-    // 아이디 받아오기
+    // 닉네임 받아오기
     socket.on("main", (userNick) => {
       console.log(`닉네임 받아오기: ${userNick}`);
       socket.userNick = userNick;

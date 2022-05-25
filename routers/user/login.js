@@ -45,14 +45,20 @@ router.get("/logout", authMiddleWare, async (req, res) => {
   const { user } = res.locals;
   const userId = user[0].userId;
   console.log("logout", userId);
-  const result = await User.updateOne({ userId }, { $set: { login: false } });
-  if (result.modifiedCount === 1) {
+  if (user.from !== "kakao") {
+    const result = await User.updateOne({ userId }, { $set: { login: false } });
+    if (result.modifiedCount === 1) {
+      res.status(200).send({
+        msg: "로그아웃 성공",
+      });
+    } else {
+      res.status(400).send({
+        msg: "로그아웃 실패",
+      });
+    }
+  } else {
     res.status(200).send({
       msg: "로그아웃 성공",
-    });
-  } else {
-    res.status(400).send({
-      msg: "로그아웃 실패",
     });
   }
 });
