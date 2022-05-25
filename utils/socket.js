@@ -582,14 +582,29 @@ module.exports = (server) => {
       const roomId = socket.roomId;
       const day = await Room.findOne({ roomId });
 
-      await Vote.create({
+      const exitVote = await Vote.findOne({
         roomId: socket.roomId,
         userSocketId: socket.id,
-        clickerJob: data.clickerJob,
-        clickerNick: data.clickerId,
-        clickedNick: data.clickedId,
-        day: !day.night,
       });
+
+      if (exitVote) {
+        await Vote.updateOne(
+          {
+            roomId: socket.roomId,
+            userSocketId: socket.id,
+          },
+          { $set: { clickerNick: data.clickerId, clickedNick: data.clickedId } }
+        );
+      } else {
+        await Vote.create({
+          roomId: socket.roomId,
+          userSocketId: socket.id,
+          clickerJob: data.clickerJob,
+          clickerNick: data.clickerId,
+          clickedNick: data.clickedId,
+          day: !day.night,
+        });
+      }
 
       if (data.clickerJob === "reporter") {
         const reporter = await Job.findOne({
