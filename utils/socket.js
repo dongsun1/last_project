@@ -367,6 +367,7 @@ module.exports = (server) => {
                     });
                   } else {
                     // 투표 동률이 아닐 때
+                    diedPeopleArr.push(voteResult[0][0]);
                     io.to(socket.roomId).emit("dayVoteResult", {
                       id: voteResult[0][0],
                       diedPeopleArr,
@@ -380,6 +381,7 @@ module.exports = (server) => {
                   }
                 } else {
                   // 여러명 투표될 때
+                  diedPeopleArr.push(voteResult[0][0]);
                   io.to(socket.roomId).emit("dayVoteResult", {
                     id: voteResult[0][0],
                     diedPeopleArr,
