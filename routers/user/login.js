@@ -45,7 +45,7 @@ router.get("/logout", authMiddleWare, async (req, res) => {
   const { user } = res.locals;
   const userId = user[0].userId;
   console.log("logout", userId);
-  if (user.from !== "kakao") {
+  if (user[0].from !== "kakao") {
     const result = await User.updateOne({ userId }, { $set: { login: false } });
     if (result.modifiedCount === 1) {
       res.status(200).send({
