@@ -47,7 +47,6 @@ app_low.use((req, res, next) => {
     next();
   } else {
     const to = `https://${req.hostname}:${httpsPort}${req.url}`;
-    console.log(to);
     res.redirect(to);
   }
 });
@@ -103,12 +102,6 @@ app.get(
     );
   }
 );
-
-// social login -> login test
-// app.get("/", (req, res) => {
-//   console.log("main");
-//   res.sendFile(__dirname + "/index.html");
-// });
 
 const httpServer = http.createServer(app_low);
 const httpsServer = https.createServer(credentials, app);
