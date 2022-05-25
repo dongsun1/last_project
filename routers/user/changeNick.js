@@ -8,14 +8,11 @@ router.post("/changeNick", authMiddleware, async (req, res) => {
   console.log("changeNick :", changeNick);
   const { user } = res.locals;
   const userId = user[0].userId;
-  const userNick = user[0].userNick;
-  console.log("loginUserId :", userId, "loginUserNick :", userNick);
 
   // Validation check
   var userNickReg = /^([a-zA-Z0-9ㄱ-ㅎ|ㅏ-ㅣ|가-힣]).{1,15}$/; //2~15자 한글,영문,숫자
 
   const existUsers = await User.findOne({ userNick: changeNick });
-  console.log("existUser :", existUsers);
 
   if (changeNick == "" || changeNick == undefined || changeNick == null) {
     res.status(400).send({
@@ -35,14 +32,11 @@ router.post("/changeNick", authMiddleware, async (req, res) => {
   }
 
   const changeUserNick = await User.findOneAndUpdate(
-    { userId: user[0].userId },
+    { userId },
     { $set: { userNick: changeNick } },
     { new: true }
   );
-  console.log("result", changeUserNick);
 
-  // const _userNick = await User.findOne({userId:userId})
-  // console.log(_userNick)
   res.status(200).send({
     msg: "닉네임 변경 완료",
     userNick: changeUserNick.userNick,
