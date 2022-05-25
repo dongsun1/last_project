@@ -395,7 +395,7 @@ module.exports = (server) => {
                 }
               } else {
                 // 밤 투표 결과
-                counter = 120;
+                counter = 90;
 
                 await Vote.deleteMany({ roomId, day: true });
                 const votes = await Vote.find({ roomId, day: false });
