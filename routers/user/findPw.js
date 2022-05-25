@@ -8,9 +8,7 @@ const dotenv = require("dotenv").config();
 // 비밀번호 초기화 -> 메일 발송
 router.post("/findPw", async (req, res) => {
   const { email, userId } = req.body;
-  console.log("body->", email, userId);
   const userInfo = await User.find({ userId, email });
-  console.log("userInfo->", userInfo);
 
   var emailReg =
     /^[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}$/i;
@@ -71,11 +69,6 @@ router.post("/findPw", async (req, res) => {
       '<h3 style="color: crimson;">임시 비밀번호로 로그인 하신 후, 반드시 비밀번호를 수정해 주세요.</h3>',
   };
   transporter.sendMail(emailOptions, (err, info) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("email 전송 완료 : " + info.response);
-    }
     transporter.close();
   });
   const hashedPw = await bcrypt.hash(randomPassword, 10);
@@ -84,7 +77,6 @@ router.post("/findPw", async (req, res) => {
     { $set: { userPw: hashedPw } },
     { new: true }
   );
-  console.log("ChangeUser-->", changePw);
   res.status(200).send({
     msg: "임시 비밀번호가 생성되었습니다.",
   });

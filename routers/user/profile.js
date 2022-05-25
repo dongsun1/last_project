@@ -12,7 +12,6 @@ router.get("/profile", authMiddleWare, async (req, res) => {
     res.status(200).json({ result: true, profile: user.userProfile });
   } catch (e) {
     res.status(400).json({ result: false, msg: "실패" });
-    console.log("profile.js에서 에러남");
   }
 });
 
@@ -28,9 +27,7 @@ router.post("/profile", authMiddleWare, async (req, res) => {
     );
     res.status(200).json({ result: true, msg: "등록 성공" });
   } catch (error) {
-    console.log(error);
     res.status(400).json({ result: false, msg: "등록 실패" });
-    console.log("profile.js에서 에러남");
   }
 });
 

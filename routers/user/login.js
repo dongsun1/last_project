@@ -4,13 +4,12 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const authMiddleWare = require("../../middleware/authMiddleWare");
 // const{ KEY } = process.env.KEY;
-const dotenv = require("dotenv").config();
+require("dotenv").config();
 const router = express.Router();
 
 // login page
 router.post("/login", async (req, res) => {
   const { userId, userPw } = req.body;
-  console.log("로그인", userId);
   const user = await User.findOne({ userId });
 
   if (!user) {
@@ -44,7 +43,6 @@ router.post("/login", async (req, res) => {
 router.get("/logout", authMiddleWare, async (req, res) => {
   const { user } = res.locals;
   const userId = user[0].userId;
-  console.log("logout", userId);
   if (user[0].from !== "kakao") {
     const result = await User.updateOne({ userId }, { $set: { login: false } });
     if (result.modifiedCount === 1) {

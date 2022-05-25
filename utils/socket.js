@@ -8,17 +8,13 @@ module.exports = (server) => {
   const io = SocketIO(server, { cors: { origin: "*" } });
 
   io.on("connection", (socket) => {
-    console.log("connection: ", socket.id);
-
     // 닉네임 받아오기
     socket.on("main", (userNick) => {
-      console.log(`닉네임 받아오기: ${userNick}`);
       socket.userNick = userNick;
     });
 
     // 방 리스트
     socket.on("roomList", async () => {
-      console.log("roomList");
       const rooms = await Room.find({});
       socket.emit("roomList", rooms);
     });
@@ -30,7 +26,6 @@ module.exports = (server) => {
 
       if (night.night) {
         // 밤 마피아 채팅
-        console.log(`밤 msg: ${msg}, nick: ${socket.userNick}`);
         const userJob = "mafia";
         const mafia = await Job.find({ roomId, userJob });
         for (let i = 0; i < mafia.length; i++) {
@@ -41,7 +36,6 @@ module.exports = (server) => {
         }
       } else {
         // 낮 채팅
-        console.log(`낮 msg: ${msg}, id: ${socket.userNick}`);
         io.to(socket.roomId).emit("msg", { msg, id: socket.userNick });
       }
     });
@@ -65,10 +59,6 @@ module.exports = (server) => {
         password: roomPwd,
       });
 
-      console.log(
-        `방 만들기: ${number}, ${socket.userNick}, ${roomTitle}, ${roomPeople}, ${roomPwd}`
-      );
-
       socket.emit("roomData", room);
     });
 
@@ -78,7 +68,6 @@ module.exports = (server) => {
       socket.userNick = userNick;
       socket.streamId = streamId;
       const roomId = socket.roomId;
-      console.log(`peerId ${peerId}`);
       socket.broadcast
         .to(roomId)
         .emit("user-connected", peerId, userNick, streamId);
@@ -86,7 +75,6 @@ module.exports = (server) => {
 
     // 방 들어가기
     socket.on("joinRoom", async (roomId) => {
-      console.log(`${socket.userNick}님이 ${roomId}에 입장하셨습니다.`);
       socket.join(roomId);
       socket.roomId = roomId;
 
@@ -113,10 +101,6 @@ module.exports = (server) => {
 
     // 방 나가기
     socket.on("leaveRoom", async () => {
-      console.log(
-        `${socket.userNick}님이 ${socket.roomId}에서 퇴장하셨습니다.`
-      );
-
       const roomId = socket.roomId;
       socket.leave(roomId);
 
@@ -159,13 +143,11 @@ module.exports = (server) => {
     socket.on("ready", async (ready) => {
       const roomId = socket.roomId;
       if (ready) {
-        console.log(`${socket.userNick} 준비완료`);
         await Room.updateOne(
           { roomId },
           { $push: { currentReadyPeople: socket.userNick } }
         );
       } else {
-        console.log(`${socket.userNick} 준비해제`);
         await Room.updateOne(
           { roomId },
           { $pull: { currentReadyPeople: socket.userNick } }
@@ -192,8 +174,6 @@ module.exports = (server) => {
       );
 
       if (readyResult) {
-        console.log(`${socket.roomId} 게임이 시작되었습니다.`);
-
         socket.emit("ready", true);
         await Room.updateOne({ roomId }, { $set: { start: true } });
 
@@ -268,7 +248,6 @@ module.exports = (server) => {
 
         // 직업 DB 생성
         for (let i = 0; i < userArr.length; i++) {
-          console.log(`직업 부여 ${room.currentPeople[i]}: ${playerJob[i]}`);
           io.to(userArr[i]).emit("getJob", room.currentPeople[i], playerJob[i]);
           if (userArr[i].includes("AI")) {
             await Job.create({
@@ -344,7 +323,6 @@ module.exports = (server) => {
 
               if (!room.night) {
                 // 낮 투표 결과
-                console.log(`${roomId} 밤이 되었습니다.`);
                 counter = 60;
 
                 await Vote.deleteMany({ roomId, day: false });
@@ -387,7 +365,6 @@ module.exports = (server) => {
                       diedPeopleArr,
                       savedPeopleArr,
                     });
-                    console.log("아무도 안죽음");
                   } else {
                     // 투표 동률이 아닐 때
                     io.to(socket.roomId).emit("dayVoteResult", {
@@ -396,7 +373,6 @@ module.exports = (server) => {
                       savedPeopleArr,
                       isMafia,
                     });
-                    console.log(`${voteResult[0][0]} 죽음`);
                     await Job.updateOne(
                       { roomId, userNick: voteResult[0][0] },
                       { $set: { save: false } }
@@ -410,7 +386,6 @@ module.exports = (server) => {
                     savedPeopleArr,
                     isMafia,
                   });
-                  console.log(`${voteResult[0][0]} 죽음`);
                   await Job.updateOne(
                     { roomId, userNick: voteResult[0][0] },
                     { $set: { save: false } }
@@ -418,7 +393,6 @@ module.exports = (server) => {
                 }
               } else {
                 // 밤 투표 결과
-                console.log(`${roomId} 낮이 되었습니다.`);
                 counter = 120;
 
                 await Vote.deleteMany({ roomId, day: true });
@@ -435,9 +409,6 @@ module.exports = (server) => {
                       { roomId, userNick: votes[i].clickedNick },
                       { $set: { save: false } }
                     );
-                    console.log(
-                      `${votes[i].clickedNick}님이 마피아에 의해 살해당했습니다.`
-                    );
                     died.push(votes[i].clickedNick);
                   }
 
@@ -450,9 +421,6 @@ module.exports = (server) => {
                     await Job.updateOne(
                       { roomId, userNick: votes[i].clickerNick },
                       { $set: { chance: false } }
-                    );
-                    console.log(
-                      `기자가 지목한 ${clickedUser.userNick}의 직업은 ${clickedUser.userJob}입니다.`
                     );
                     io.to(roomId).emit("reporter", {
                       clickerJob: clickedUser.userJob,
@@ -497,9 +465,6 @@ module.exports = (server) => {
                       await Job.updateOne(
                         { roomId, userNick: votes[i].clickedNick },
                         { $set: { save: true } }
-                      );
-                      console.log(
-                        `${votes[i].clickedNick}님이 의사에 의해 치료되었습니다.`
                       );
                       saved.push(votes[i].clickedNick);
                     }
@@ -575,7 +540,6 @@ module.exports = (server) => {
                   }
                 }
                 clearInterval(countdown);
-                console.log(`${roomId} ${msg}`);
                 io.to(socket.roomId).emit("endGame", { msg });
                 const currentPeople = await Room.findOne({ roomId });
                 await Room.updateOne(
@@ -596,7 +560,6 @@ module.exports = (server) => {
             // 자기소개 시간이 끝났을 때
             first = false;
             counter = 20;
-            console.log(`${roomId} 밤이 되었습니다.`);
             const day = await Room.findOne({ roomId });
             io.to(socket.roomId).emit("isNight", !day.night);
             await Room.updateOne({ roomId }, { $set: { night: !day.night } });
@@ -610,15 +573,12 @@ module.exports = (server) => {
           (x) => !ready.currentReadyPeople.includes(x)
         );
 
-        console.log(`${notReadyId} 참가자들이 준비가 되지 않았습니다.`);
         socket.emit("ready", false, notReadyId);
       }
     });
 
     // 투표
     socket.on("vote", async (data) => {
-      console.log("vote", JSON.stringify(data));
-
       const roomId = socket.roomId;
       const day = await Room.findOne({ roomId });
 
@@ -662,21 +622,15 @@ module.exports = (server) => {
           });
 
           if (clickedUser.userJob === "mafia") {
-            console.log(`경찰이 지목한 사람은 ${data.clickedId} 마피아입니다.`);
             socket.emit("police", true);
           } else {
-            console.log(
-              `경찰이 지목한 사람은 ${data.clickedId} 마피아가 아닙니다.`
-            );
             socket.emit("police", false);
           }
         }
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log(`disconnection: ${socket.id}`);
-    });
+    socket.on("disconnect", () => {});
   });
 };
 

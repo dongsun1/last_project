@@ -5,10 +5,7 @@ const router = express.Router();
 
 // register --> email 정규식 추가(04.25) ->findPw
 router.post("/register", async (req, res) => {
-  console.log("user/register");
-
   const { userId, email, userPw, userPwCheck, userNick } = req.body;
-  console.log("register-->", req.body);
 
   // Validation Check
   var userNickReg = /^([a-zA-Z0-9ㄱ-ㅎ|ㅏ-ㅣ|가-힣]).{1,15}$/; //2~15자 한글,영문,숫자
@@ -97,7 +94,6 @@ router.post("/register", async (req, res) => {
     userPw: hashed,
     from,
   });
-  console.log("user-->", user);
   await user.save();
 
   res.status(200).send({
@@ -110,7 +106,6 @@ router.post("/register", async (req, res) => {
 // 아이디 중복체크
 router.post("/idCheck", async (req, res) => {
   const { idCheck } = req.body;
-  // console.log('idCheck :', idCheck)
   const existUserId = await User.findOne({ userId: idCheck });
   let msg = "";
   if (
@@ -131,7 +126,6 @@ router.post("/idCheck", async (req, res) => {
 // 이메일 중복체크
 router.post("/emailCheck", async (req, res) => {
   const { emailCheck } = req.body;
-  console.log("emailCheck :", emailCheck);
   const existUserEmail = await User.findOne({ email: emailCheck });
   let msg = "";
   if (
@@ -152,7 +146,6 @@ router.post("/emailCheck", async (req, res) => {
 // 닉네임 중복체크
 router.post("/userNickCheck", async (req, res) => {
   const { userNickCheck } = req.body;
-  console.log("userNickCheck :", userNickCheck);
   const existUserNick = await User.findOne({ userNick: userNickCheck });
   if (
     existUserNick == undefined ||

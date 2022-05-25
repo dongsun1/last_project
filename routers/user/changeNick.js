@@ -5,7 +5,6 @@ const authMiddleware = require("../../middleware/authMiddleWare");
 
 router.post("/changeNick", authMiddleware, async (req, res) => {
   const { changeNick } = req.body;
-  console.log("changeNick :", changeNick);
   const { user } = res.locals;
   const userId = user[0].userId;
 
