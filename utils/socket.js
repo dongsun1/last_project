@@ -361,7 +361,7 @@ module.exports = (server) => {
                   if (voteResult[0][1] === voteResult[1][1]) {
                     // 투표 동률일 때
                     io.to(socket.roomId).emit("dayVoteResult", {
-                      id: "",
+                      id: false,
                       diedPeopleArr,
                       savedPeopleArr,
                     });
