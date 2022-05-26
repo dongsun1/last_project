@@ -547,7 +547,6 @@ module.exports = (server) => {
                 await Room.updateOne(
                   { roomId },
                   {
-                    $set: { start: false },
                     $pullAll: {
                       currentReadyPeople: currentPeople.currentPeople,
                     },
