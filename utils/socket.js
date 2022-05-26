@@ -560,7 +560,7 @@ module.exports = (server) => {
           if (counter < 0) {
             // 자기소개 시간이 끝났을 때
             first = false;
-            counter = 20;
+            counter = 60;
             const day = await Room.findOne({ roomId });
             io.to(socket.roomId).emit("isNight", !day.night);
             await Room.updateOne({ roomId }, { $set: { night: !day.night } });
