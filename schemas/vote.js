@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const voteSchema = mongoose.Schema({
   roomId: {
-    type: string,
+    type: String,
     required: true,
     unique: true,
   },
