@@ -2,8 +2,9 @@ const mongoose = require("mongoose");
 
 const jobSchema = mongoose.Schema({
   roomId: {
-    type: Number,
+    type: string,
     required: true,
+    unique: true,
   },
   userSocketId: {
     type: String,

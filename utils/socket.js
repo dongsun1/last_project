@@ -44,15 +44,10 @@ module.exports = (server) => {
     socket.on("createRoom", async (data) => {
       const { roomTitle, roomPeople, roomPwd } = data;
 
-      const maxNumber = await Room.findOne().sort("-roomId");
-
-      let number = 1;
-      if (maxNumber) {
-        number = maxNumber.roomId + 1;
-      }
+      const roomId = new Date().getTime().toString(36);
 
       const room = await Room.create({
-        roomId: number,
+        roomId,
         userId: socket.userNick,
         roomTitle,
         roomPeople,
