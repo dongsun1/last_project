@@ -202,7 +202,7 @@ module.exports = (server) => {
             job.push(1, 1, 1, 2, 3, 4);
             break;
           case 7:
-            job.push(1, 1, 1, 2, 3, 4, 4);
+            job.push(1, 1, 2, 3, 4, 4, 5);
             break;
           case 8:
             job.push(1, 1, 1, 2, 3, 4, 4, 5);
