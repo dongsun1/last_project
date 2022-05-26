@@ -4,7 +4,6 @@ const jobSchema = mongoose.Schema({
   roomId: {
     type: String,
     required: true,
-    unique: true,
   },
   userSocketId: {
     type: String,
