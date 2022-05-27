@@ -99,26 +99,23 @@ module.exports = (server) => {
       const roomId = socket.roomId;
       socket.leave(roomId);
 
-      // Room 현재 인원에서 pull
-      await Room.updateOne(
-        { roomId },
-        {
-          $pull: {
-            currentPeople: socket.userNick,
-            currentPeopleSocketId: socket.id,
-          },
-        }
-      );
-
-      const roomUpdate = await Room.findOne({ roomId });
-
-      // 방의 현재 인원이 0 이라면 방 삭제
-      if (roomUpdate.currentPeople.length === 0) {
+      const room = Room.findOne({ roomId });
+      if (room.userId === socket.userNick) {
         await Room.deleteOne({ roomId });
-        socket.emit("leaveRoomMsg", socket.id);
       } else {
-        io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userNick);
+        // Room 현재 인원에서 pull
+        await Room.updateOne(
+          { roomId },
+          {
+            $pull: {
+              currentPeople: socket.userNick,
+              currentPeopleSocketId: socket.id,
+            },
+          }
+        );
       }
+
+      io.to(roomId).emit("leaveRoomMsg", socket.id, socket.userNick);
 
       const rooms = await Room.find({});
 
