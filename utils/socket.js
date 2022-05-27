@@ -100,6 +100,8 @@ module.exports = (server) => {
       socket.leave(roomId);
 
       const room = await Room.findOne({ roomId });
+
+      // 방장이 나갈 시 방 삭제
       if (room.userId === socket.userNick) {
         await Room.deleteOne({ roomId });
       } else {
@@ -146,8 +148,10 @@ module.exports = (server) => {
         );
       }
 
-      const readyPeople = await Room.findOne({ roomId });
-      io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
+      const room = await Room.findOne({ roomId });
+      if (room.userId !== socket.userNick) {
+        io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
+      }
     });
 
     // 게임시작
