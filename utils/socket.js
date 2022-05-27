@@ -332,9 +332,6 @@ module.exports = (server) => {
                 }
               }
 
-              const AIVote = await Vote.find({});
-              console.log(AIVote);
-
               if (!room.night) {
                 // 낮 투표 결과
                 counter = 20;
