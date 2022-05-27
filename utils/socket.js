@@ -266,7 +266,7 @@ module.exports = (server) => {
           }
         }
 
-        let counter = 60;
+        let counter = 20;
         let first = true;
 
         // 타이머
@@ -310,8 +310,8 @@ module.exports = (server) => {
                       roomId: AI[i].roomId,
                       userSocketId: AI[i],
                       clickerJob: AI[i].userJob,
-                      clickerId: AI[i].userId,
-                      clickedId: currentPeople[random],
+                      clickerNick: AI[i].userId,
+                      clickedNick: currentPeople[random],
                       day: !room.night,
                     });
                   } else {
@@ -325,7 +325,7 @@ module.exports = (server) => {
 
               if (!room.night) {
                 // 낮 투표 결과
-                counter = 60;
+                counter = 20;
 
                 await Vote.deleteMany({ roomId, day: false });
                 const votes = await Vote.find({ roomId, day: true });
@@ -397,7 +397,7 @@ module.exports = (server) => {
                 }
               } else {
                 // 밤 투표 결과
-                counter = 90;
+                counter = 20;
 
                 await Vote.deleteMany({ roomId, day: true });
                 const votes = await Vote.find({ roomId, day: false });
@@ -562,7 +562,7 @@ module.exports = (server) => {
           if (counter < 0) {
             // 자기소개 시간이 끝났을 때
             first = false;
-            counter = 60;
+            counter = 20;
             const day = await Room.findOne({ roomId });
             io.to(socket.roomId).emit("isNight", !day.night);
             await Room.updateOne({ roomId }, { $set: { night: !day.night } });
