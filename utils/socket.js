@@ -99,8 +99,7 @@ module.exports = (server) => {
       const roomId = socket.roomId;
       socket.leave(roomId);
 
-      const room = Room.findOne({ roomId });
-      console.log(roomId, room, socket.userNick);
+      const room = await Room.findOne({ roomId });
       if (room.userId === socket.userNick) {
         await Room.deleteOne({ roomId });
       } else {
