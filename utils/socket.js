@@ -313,7 +313,7 @@ module.exports = (server) => {
                           roomId: AI[i].roomId,
                           userSocketId: AI[i],
                           clickerJob: AI[i].userJob,
-                          clickerNick: AI[i].userId,
+                          clickerNick: AI[i].userNick,
                           clickedNick: currentPeople[random],
                           day: !room.night,
                         });
@@ -337,7 +337,7 @@ module.exports = (server) => {
                         roomId: AI[i].roomId,
                         userSocketId: AI[i],
                         clickerJob: AI[i].userJob,
-                        clickerNick: AI[i].userId,
+                        clickerNick: AI[i].userNick,
                         clickedNick: currentPeople[random],
                         day: !room.night,
                       });
