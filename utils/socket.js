@@ -297,7 +297,7 @@ module.exports = (server) => {
                   Math.random() * (currentPeople.length - 1)
                 );
                 // 랜덤이 본인일 경우 continue
-                if (random === currentPeople.indexOf(`AI${i}`)) {
+                if (random === i) {
                   i--;
                   continue;
                 }
