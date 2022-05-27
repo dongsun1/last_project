@@ -301,7 +301,7 @@ module.exports = (server) => {
                   // 밤일 때
                   if (AI[i].userJob !== "citizen") {
                     // 랜덤이 본인일 경우
-                    if (random === currentPeople.indexOf(`AI${random}`)) {
+                    if (random === room.currentPeople.indexOf(`AI${random}`)) {
                       i--;
                     } else {
                       const save = await Job.findOne({
@@ -314,7 +314,7 @@ module.exports = (server) => {
                           userSocketId: AI[i],
                           clickerJob: AI[i].userJob,
                           clickerNick: AI[i].userId,
-                          clickedNick: currentPeople[random],
+                          clickedNick: room.currentPeople[random],
                           day: !room.night,
                         });
                       } else {
@@ -325,11 +325,11 @@ module.exports = (server) => {
                 } else {
                   // 낮일 때
                   // 랜덤이 본인일 경우
-                  if (random === currentPeople.indexOf(`AI${random}`)) {
+                  if (random === room.currentPeople.indexOf(`AI${random}`)) {
                     i--;
                   } else {
                     const save = await Job.findOne({
-                      userId: currentPeople[random],
+                      userId: room.currentPeople[random],
                     });
                     // 랜덤이 살아있을 경우 create
                     if (save.save) {
@@ -338,7 +338,7 @@ module.exports = (server) => {
                         userSocketId: AI[i],
                         clickerJob: AI[i].userJob,
                         clickerNick: AI[i].userId,
-                        clickedNick: currentPeople[random],
+                        clickedNick: room.currentPeople[random],
                         day: !room.night,
                       });
                     } else {
