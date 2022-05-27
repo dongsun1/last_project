@@ -175,18 +175,22 @@ module.exports = (server) => {
         let room = await Room.findOne({ roomId });
 
         // AI 생성
-        // if (room.currentPeople.length < room.roomPeople) {
-        //   const aiNum = room.roomPeople.length - room.currentPeople.length;
-        //   for (let i = 0; i < aiNum; i++) {
-        //     const ai = `AI${room.currentPeople.length + i}`;
-        //     await Room.updateOne(
-        //       { roomId },
-        //       { $push: { currentPeople: ai, currentPeopleSocketId: ai } }
-        //     );
-        //   }
-        // }
-        // room = await Room.findOne({ roomId });
+        const AIArr = [];
+        if (room.currentPeople.length < room.roomPeople) {
+          const aiNum = room.roomPeople.length - room.currentPeople.length;
+          for (let i = 0; i < aiNum; i++) {
+            const ai = `AI${room.currentPeople.length + i}`;
+            AIArr.push(ai);
+            await Room.updateOne(
+              { roomId },
+              { $push: { currentPeople: ai, currentPeopleSocketId: ai } }
+            );
+          }
+        }
 
+        io.to(socket.roomId).emit("AI", AIArr);
+
+        room = await Room.findOne({ roomId });
         const userArr = room.currentPeopleSocketId;
         // 각 user 직업 부여
         const job = [];
@@ -284,37 +288,37 @@ module.exports = (server) => {
               );
 
               // AI 투표
-              // const AI = await Job.find({ roomId, AI: true });
+              const AI = await Job.find({ roomId, AI: true });
 
-              // const currentPeople = room.currentPeople;
+              const currentPeople = room.currentPeople;
 
-              // for (let i = 0; i < AI.length; i++) {
-              //   const random = Math.floor(
-              //     Math.random() * (room.currentPeople - 1)
-              //   );
+              for (let i = 0; i < AI.length; i++) {
+                const random = Math.floor(
+                  Math.random() * (room.currentPeople - 1)
+                );
 
-              //   // 랜덤이 본인일 경우
-              //   if (random === currentPeople.indexOf(`AI${random}`)) {
-              //     i--;
-              //   } else {
-              //     const save = await Job.findOne({
-              //       userId: currentPeople[random],
-              //     });
-              //     // 랜덤이 살아있을 경우 create
-              //     if (save.save) {
-              //       await Vote.create({
-              //         roomId: AI[i].roomId,
-              //         userSocketId: AI[i],
-              //         clickerJob: AI[i].userJob,
-              //         clickerId: AI[i].userId,
-              //         clickedId: currentPeople[random],
-              //         day: !room.night,
-              //       });
-              //     } else {
-              //       i--;
-              //     }
-              //   }
-              // }
+                // 랜덤이 본인일 경우
+                if (random === currentPeople.indexOf(`AI${random}`)) {
+                  i--;
+                } else {
+                  const save = await Job.findOne({
+                    userId: currentPeople[random],
+                  });
+                  // 랜덤이 살아있을 경우 create
+                  if (save.save) {
+                    await Vote.create({
+                      roomId: AI[i].roomId,
+                      userSocketId: AI[i],
+                      clickerJob: AI[i].userJob,
+                      clickerId: AI[i].userId,
+                      clickedId: currentPeople[random],
+                      day: !room.night,
+                    });
+                  } else {
+                    i--;
+                  }
+                }
+              }
 
               if (!room.night) {
                 // 낮 투표 결과
