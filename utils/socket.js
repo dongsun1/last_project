@@ -289,6 +289,7 @@ module.exports = (server) => {
 
               // AI 투표
               const AI = await Job.find({ roomId, AI: true });
+              console.log(AI);
 
               const currentPeople = room.currentPeople;
 
@@ -296,26 +297,53 @@ module.exports = (server) => {
                 const random = Math.floor(
                   Math.random() * (room.currentPeople - 1)
                 );
-
-                // 랜덤이 본인일 경우
-                if (random === currentPeople.indexOf(`AI${random}`)) {
-                  i--;
+                if (room.night) {
+                  // 밤일 때
+                  if (AI[i].userJob !== "citizen") {
+                    // 랜덤이 본인일 경우
+                    if (random === currentPeople.indexOf(`AI${random}`)) {
+                      i--;
+                    } else {
+                      const save = await Job.findOne({
+                        userId: currentPeople[random],
+                      });
+                      // 랜덤이 살아있을 경우 create
+                      if (save.save) {
+                        await Vote.create({
+                          roomId: AI[i].roomId,
+                          userSocketId: AI[i],
+                          clickerJob: AI[i].userJob,
+                          clickerNick: AI[i].userId,
+                          clickedNick: currentPeople[random],
+                          day: !room.night,
+                        });
+                      } else {
+                        i--;
+                      }
+                    }
+                  }
                 } else {
-                  const save = await Job.findOne({
-                    userId: currentPeople[random],
-                  });
-                  // 랜덤이 살아있을 경우 create
-                  if (save.save) {
-                    await Vote.create({
-                      roomId: AI[i].roomId,
-                      userSocketId: AI[i],
-                      clickerJob: AI[i].userJob,
-                      clickerNick: AI[i].userId,
-                      clickedNick: currentPeople[random],
-                      day: !room.night,
-                    });
-                  } else {
+                  // 낮일 때
+                  // 랜덤이 본인일 경우
+                  if (random === currentPeople.indexOf(`AI${random}`)) {
                     i--;
+                  } else {
+                    const save = await Job.findOne({
+                      userId: currentPeople[random],
+                    });
+                    // 랜덤이 살아있을 경우 create
+                    if (save.save) {
+                      await Vote.create({
+                        roomId: AI[i].roomId,
+                        userSocketId: AI[i],
+                        clickerJob: AI[i].userJob,
+                        clickerNick: AI[i].userId,
+                        clickedNick: currentPeople[random],
+                        day: !room.night,
+                      });
+                    } else {
+                      i--;
+                    }
                   }
                 }
               }
