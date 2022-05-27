@@ -100,7 +100,7 @@ module.exports = (server) => {
       socket.leave(roomId);
 
       const room = Room.findOne({ roomId });
-      console.log(room.userId, socket.userNick);
+      console.log(roomId, room.userId, socket.userNick);
       if (room.userId === socket.userNick) {
         await Room.deleteOne({ roomId });
       } else {
