@@ -8,7 +8,7 @@ const { request } = require("http");
 
 const naver = {
   clientid: `${process.env.CLIENT_ID}`, //REST API
-  redirectUri: "https://mafiyang.com/naverLogin/main",
+  redirectUri: "https://mafiyang.com/naverLogin/callback",
   client_secret: `${process.env.CLIENT_SECRET}`,
   state: "login",
 };
@@ -20,7 +20,7 @@ router.get("/naverLogin", (req, res) => {
 });
 
 //  /main 설정 시 kakao redirectUri랑 동일함.. -> token 2번요청 -> error
-router.get("/naverLogin/main", async (req, res) => {
+router.get("/naverLogin/callback", async (req, res) => {
   const code = req.query.code;
   const state = req.query.state;
   const naver_api_url =
