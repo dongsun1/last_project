@@ -297,7 +297,7 @@ module.exports = (server) => {
                   Math.random() * (currentPeople.length - 1)
                 );
                 // 랜덤이 본인일 경우 continue
-                if (random === i) {
+                if (`AI${random}` === AI[i].userNick) {
                   i--;
                   continue;
                 }
