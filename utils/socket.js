@@ -305,7 +305,7 @@ module.exports = (server) => {
                       i--;
                     } else {
                       const save = await Job.findOne({
-                        userId: currentPeople[random],
+                        userId: room.currentPeople[random],
                       });
                       // 랜덤이 살아있을 경우 create
                       if (save.save) {
