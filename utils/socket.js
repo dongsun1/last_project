@@ -176,8 +176,8 @@ module.exports = (server) => {
 
         // AI 생성
         const AIArr = [];
-        if (room.currentPeople.length < room.roomPeople.length) {
-          const aiNum = room.roomPeople.length - room.currentPeople.length;
+        if (room.currentPeople.length < room.roomPeople) {
+          const aiNum = room.roomPeople - room.currentPeople.length;
           for (let i = 0; i < aiNum; i++) {
             const ai = `AI${room.currentPeople.length + i}`;
             AIArr.push(ai);
