@@ -43,7 +43,7 @@ router.post("/login", async (req, res) => {
 router.get("/logout", authMiddleWare, async (req, res) => {
   const { user } = res.locals;
   const userId = user[0].userId;
-  if (user[0].from !== "kakao") {
+  if (user[0].from !== "kakao" || user[0].from !== "naver") {
     const result = await User.updateOne({ userId }, { $set: { login: false } });
     if (result.modifiedCount === 1) {
       res.status(200).send({
