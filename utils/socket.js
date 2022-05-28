@@ -149,8 +149,10 @@ module.exports = (server) => {
       }
 
       const room = await Room.findOne({ roomId });
-      if (room.userId !== socket.userNick) {
-        io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
+      if (room) {
+        if (room.userId !== socket.userNick) {
+          io.to(roomId).emit("readyPeople", room.currentReadyPeople);
+        }
       }
     });
 
