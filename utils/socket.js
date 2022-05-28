@@ -149,13 +149,15 @@ module.exports = (server) => {
       }
 
       const room = await Room.findOne({ roomId });
-      if (room.userId !== socket.userNick) {
-        io.to(roomId).emit("readyPeople", readyPeople.currentReadyPeople);
+      if (room) {
+        if (room.userId !== socket.userNick) {
+          io.to(roomId).emit("readyPeople", room.currentReadyPeople);
+        }
       }
     });
 
     // 게임시작
-    socket.on("startGame", async () => {
+    socket.on("startGame", async (AICheck) => {
       const roomId = socket.roomId;
 
       await Room.updateOne(
@@ -175,21 +177,22 @@ module.exports = (server) => {
 
         let room = await Room.findOne({ roomId });
 
-        // AI 생성
-        const AIArr = [];
-        if (room.currentPeople.length < room.roomPeople) {
-          const aiNum = room.roomPeople - room.currentPeople.length;
-          for (let i = 0; i < aiNum; i++) {
-            const ai = `AI${room.currentPeople.length + i}`;
-            AIArr.push(ai);
-            await Room.updateOne(
-              { roomId },
-              { $push: { currentPeople: ai, currentPeopleSocketId: ai } }
-            );
+        if (AICheck) {
+          // AI 생성
+          const AIArr = [];
+          if (room.currentPeople.length < room.roomPeople) {
+            const aiNum = room.roomPeople - room.currentPeople.length;
+            for (let i = 0; i < aiNum; i++) {
+              const ai = `AI${room.currentPeople.length + i}`;
+              AIArr.push(ai);
+              await Room.updateOne(
+                { roomId },
+                { $push: { currentPeople: ai, currentPeopleSocketId: ai } }
+              );
+            }
           }
+          io.to(socket.roomId).emit("AI", AIArr);
         }
-
-        io.to(socket.roomId).emit("AI", AIArr);
 
         room = await Room.findOne({ roomId });
         const userArr = room.currentPeopleSocketId;
@@ -288,31 +291,42 @@ module.exports = (server) => {
                 { $set: { night: !room.night } }
               );
 
-              // AI 투표
-              const AI = await Job.find({ roomId, AI: true });
+              if (AICheck) {
+                // AI 투표
+                const AI = await Job.find({ roomId, AI: true });
 
-              const currentPeople = room.currentPeople;
+                const currentPeople = room.currentPeople;
 
-              for (let i = 0; i < AI.length; i++) {
-                const random = Math.floor(
-                  Math.random() * (currentPeople.length - 1)
-                );
-                // 랜덤이 본인일 경우 continue
-                if (`AI${random}` === AI[i].userNick) {
-                  i--;
-                  continue;
-                }
-                const save = await Job.findOne({
-                  userNick: currentPeople[random],
-                });
-                // 랜덤이 죽어있을 경우 continue
-                if (!save.save) {
-                  i--;
-                  continue;
-                }
-                if (room.night) {
-                  // 밤일 때
-                  if (AI[i].userJob !== "citizen") {
+                for (let i = 0; i < AI.length; i++) {
+                  const random = Math.floor(
+                    Math.random() * (currentPeople.length - 1)
+                  );
+                  // 랜덤이 본인일 경우 continue
+                  if (`AI${random}` === AI[i].userNick) {
+                    i--;
+                    continue;
+                  }
+                  const save = await Job.findOne({
+                    userNick: currentPeople[random],
+                  });
+                  // 랜덤이 죽어있을 경우 continue
+                  if (!save.save) {
+                    i--;
+                    continue;
+                  }
+                  if (room.night) {
+                    // 밤일 때
+                    if (AI[i].userJob !== "citizen") {
+                      await Vote.create({
+                        roomId: AI[i].roomId,
+                        clickerJob: AI[i].userJob,
+                        clickerNick: AI[i].userNick,
+                        clickedNick: currentPeople[random],
+                        day: !room.night,
+                      });
+                    }
+                  } else {
+                    // 낮일 때
                     await Vote.create({
                       roomId: AI[i].roomId,
                       clickerJob: AI[i].userJob,
@@ -321,15 +335,6 @@ module.exports = (server) => {
                       day: !room.night,
                     });
                   }
-                } else {
-                  // 낮일 때
-                  await Vote.create({
-                    roomId: AI[i].roomId,
-                    clickerJob: AI[i].userJob,
-                    clickerNick: AI[i].userNick,
-                    clickedNick: currentPeople[random],
-                    day: !room.night,
-                  });
                 }
               }
 
