@@ -342,7 +342,6 @@ module.exports = (server) => {
                 // 낮 투표 결과
                 counter = 60;
 
-                await Vote.deleteMany({ roomId, day: false });
                 const votes = await Vote.find({ roomId, day: true });
 
                 const clickedArr = [];
@@ -410,11 +409,11 @@ module.exports = (server) => {
                     { $set: { save: false } }
                   );
                 }
+                await Vote.deleteMany({ roomId, day: true });
               } else {
                 // 밤 투표 결과
                 counter = 90;
 
-                await Vote.deleteMany({ roomId, day: true });
                 const votes = await Vote.find({ roomId, day: false });
 
                 let died = [];
@@ -511,6 +510,8 @@ module.exports = (server) => {
                   diedPeopleArr,
                   savedPeopleArr,
                 });
+
+                await Vote.deleteMany({ roomId, day: false });
               }
 
               // 게임 끝났는지 체크
@@ -570,8 +571,8 @@ module.exports = (server) => {
                   }
                 );
                 await Job.deleteMany({ roomId });
+                await Vote.deleteMany({ roomId });
               }
-              await Vote.deleteMany({ roomId });
             }
           }
           if (counter < 0) {
