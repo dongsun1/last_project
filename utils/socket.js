@@ -281,42 +281,53 @@ module.exports = (server) => {
           counter--;
           if (!first) {
             // 자기소개 시간이 아닐 때
-            if (counter < 0) {
+            if (counter <= 0) {
               // 카운터가 끝났을 때
               // 낮, 밤 체크
               const room = await Room.findOne({ roomId });
-              io.to(socket.roomId).emit("isNight", !room.night);
-              await Room.updateOne(
-                { roomId },
-                { $set: { night: !room.night } }
-              );
+              if (room) {
+                io.to(socket.roomId).emit("isNight", !room.night);
+                await Room.updateOne(
+                  { roomId },
+                  { $set: { night: !room.night } }
+                );
 
-              if (AICheck) {
-                // AI 투표
-                const AI = await Job.find({ roomId, AI: true });
+                if (AICheck) {
+                  // AI 투표
+                  const AI = await Job.find({ roomId, AI: true });
 
-                const currentPeople = room.currentPeople;
+                  const currentPeople = room.currentPeople;
 
-                for (let i = 0; i < AI.length; i++) {
-                  const random = Math.floor(
-                    Math.random() * (currentPeople.length - 1)
-                  );
-                  // 랜덤이 본인일 경우 continue
-                  if (`AI${random}` === AI[i].userNick) {
-                    i--;
-                    continue;
-                  }
-                  const save = await Job.findOne({
-                    userNick: currentPeople[random],
-                  });
-                  // 랜덤이 죽어있을 경우 continue
-                  if (!save.save) {
-                    i--;
-                    continue;
-                  }
-                  if (room.night) {
-                    // 밤일 때
-                    if (AI[i].userJob !== "citizen") {
+                  for (let i = 0; i < AI.length; i++) {
+                    const random = Math.floor(
+                      Math.random() * (currentPeople.length - 1)
+                    );
+                    // 랜덤이 본인일 경우 continue
+                    if (`AI${random}` === AI[i].userNick) {
+                      i--;
+                      continue;
+                    }
+                    const save = await Job.findOne({
+                      userNick: currentPeople[random],
+                    });
+                    // 랜덤이 죽어있을 경우 continue
+                    if (!save.save) {
+                      i--;
+                      continue;
+                    }
+                    if (room.night) {
+                      // 밤일 때
+                      if (AI[i].userJob !== "citizen") {
+                        await Vote.create({
+                          roomId: AI[i].roomId,
+                          clickerJob: AI[i].userJob,
+                          clickerNick: AI[i].userNick,
+                          clickedNick: currentPeople[random],
+                          day: !room.night,
+                        });
+                      }
+                    } else {
+                      // 낮일 때
                       await Vote.create({
                         roomId: AI[i].roomId,
                         clickerJob: AI[i].userJob,
@@ -325,64 +336,68 @@ module.exports = (server) => {
                         day: !room.night,
                       });
                     }
-                  } else {
-                    // 낮일 때
-                    await Vote.create({
-                      roomId: AI[i].roomId,
-                      clickerJob: AI[i].userJob,
-                      clickerNick: AI[i].userNick,
-                      clickedNick: currentPeople[random],
-                      day: !room.night,
-                    });
-                  }
-                }
-              }
-
-              if (!room.night) {
-                // 낮 투표 결과
-                counter = 60;
-
-                const votes = await Vote.find({ roomId, day: true });
-
-                const clickedArr = [];
-
-                for (let i = 0; i < votes.length; i++) {
-                  clickedArr.push(votes[i].clickedNick);
-                }
-
-                // 투표 결과
-                const voteResult = getSortedArr(clickedArr);
-
-                const diedPeople = await Job.find({ roomId });
-                const diedPeopleArr = [];
-                const savedPeopleArr = [];
-                for (let i = 0; i < diedPeople.length; i++) {
-                  if (!diedPeople[i].save) {
-                    diedPeopleArr.push(diedPeople[i].userNick);
-                  } else {
-                    savedPeopleArr.push(diedPeople[i].userNick);
                   }
                 }
 
-                const isMafiaUser = await Job.findOne({
-                  userNick: voteResult[0][0],
-                });
-                let isMafia = false;
-                if (isMafiaUser.userJob === "mafia") {
-                  isMafia = true;
-                }
+                if (!room.night) {
+                  // 낮 투표 결과
+                  counter = 60;
 
-                if (voteResult.length !== 1) {
-                  // 1명만 투표된게 아닐 때
-                  if (voteResult[0][1] === voteResult[1][1]) {
-                    // 투표 동률일 때
-                    io.to(socket.roomId).emit("dayVoteResult", {
-                      id: false,
-                      diedPeopleArr,
-                      savedPeopleArr,
-                    });
+                  const votes = await Vote.find({ roomId, day: true });
+
+                  const clickedArr = [];
+
+                  for (let i = 0; i < votes.length; i++) {
+                    clickedArr.push(votes[i].clickedNick);
+                  }
+
+                  // 투표 결과
+                  const voteResult = getSortedArr(clickedArr);
+
+                  const diedPeople = await Job.find({ roomId });
+                  const diedPeopleArr = [];
+                  const savedPeopleArr = [];
+                  for (let i = 0; i < diedPeople.length; i++) {
+                    if (!diedPeople[i].save) {
+                      diedPeopleArr.push(diedPeople[i].userNick);
+                    } else {
+                      savedPeopleArr.push(diedPeople[i].userNick);
+                    }
+                  }
+
+                  const isMafiaUser = await Job.findOne({
+                    userNick: voteResult[0][0],
+                  });
+                  let isMafia = false;
+                  if (isMafiaUser.userJob === "mafia") {
+                    isMafia = true;
+                  }
+
+                  if (voteResult.length !== 1) {
+                    // 1명만 투표된게 아닐 때
+                    if (voteResult[0][1] === voteResult[1][1]) {
+                      // 투표 동률일 때
+                      io.to(socket.roomId).emit("dayVoteResult", {
+                        id: false,
+                        diedPeopleArr,
+                        savedPeopleArr,
+                      });
+                    } else {
+                      // 투표 동률이 아닐 때
+                      diedPeopleArr.push(voteResult[0][0]);
+                      io.to(socket.roomId).emit("dayVoteResult", {
+                        id: voteResult[0][0],
+                        diedPeopleArr,
+                        savedPeopleArr,
+                        isMafia,
+                      });
+                      await Job.updateOne(
+                        { roomId, userNick: voteResult[0][0] },
+                        { $set: { save: false } }
+                      );
+                    }
                   } else {
-                    // 투표 동률이 아닐 때
+                    // 여러명 투표될 때
                     diedPeopleArr.push(voteResult[0][0]);
                     io.to(socket.roomId).emit("dayVoteResult", {
                       id: voteResult[0][0],
@@ -395,170 +410,171 @@ module.exports = (server) => {
                       { $set: { save: false } }
                     );
                   }
+                  await Vote.deleteMany({ roomId, day: true });
                 } else {
-                  // 여러명 투표될 때
-                  diedPeopleArr.push(voteResult[0][0]);
-                  io.to(socket.roomId).emit("dayVoteResult", {
-                    id: voteResult[0][0],
-                    diedPeopleArr,
-                    savedPeopleArr,
-                    isMafia,
-                  });
-                  await Job.updateOne(
-                    { roomId, userNick: voteResult[0][0] },
-                    { $set: { save: false } }
-                  );
-                }
-                await Vote.deleteMany({ roomId, day: true });
-              } else {
-                // 밤 투표 결과
-                counter = 90;
+                  // 밤 투표 결과
+                  counter = 90;
 
-                const votes = await Vote.find({ roomId, day: false });
+                  const votes = await Vote.find({ roomId, day: false });
 
-                let died = [];
-                let saved = [];
-                let sniper = [];
+                  let died = [];
+                  let saved = [];
+                  let sniper = [];
 
-                for (let i = 0; i < votes.length; i++) {
-                  // 마피아
-                  if (votes[i].clickerJob === "mafia") {
-                    await Job.updateOne(
-                      { roomId, userNick: votes[i].clickedNick },
-                      { $set: { save: false } }
-                    );
-                    died.push(votes[i].clickedNick);
-                  }
-
-                  // 기자
-                  if (votes[i].clickerJob === "reporter") {
-                    const clickedUser = await Job.findOne({
-                      roomId,
-                      userNick: votes[i].clickedNick,
-                    });
-                    await Job.updateOne(
-                      { roomId, userNick: votes[i].clickerNick },
-                      { $set: { chance: false } }
-                    );
-                    io.to(roomId).emit("reporter", {
-                      clickerJob: clickedUser.userJob,
-                      clickerNick: clickedUser.userNick,
-                    });
-                  }
-
-                  // 저격수
-                  // if (votes[i].clickerJob === "sniper") {
-                  //   const sniper = await Job.findOne({
-                  //     roomId,
-                  //     userId: votes[i].clickerId,
-                  //   });
-                  //   if (sniper.chance) {
-                  //     await Job.updateOne(
-                  //       { roomId, userId: votes[i].clickerId },
-                  //       { $set: { chance: false } }
-                  //     );
-                  //     await Job.updateOne(
-                  //       { roomId, userId: votes[i].clickedId },
-                  //       { $set: { save: false } }
-                  //     );
-                  //     console.log(
-                  //       `${votes[i].clickedId}님이 저격수에 의해 살해당했습니다.`
-                  //     );
-                  //     sniper.push(votes[i].clickedId);
-                  //     socket.emit("sniper", true);
-                  //   } else {
-                  //     socket.emit("sniper", false);
-                  //   }
-                  // }
-                }
-
-                // 의사
-                for (let i = 0; i < votes.length; i++) {
-                  if (votes[i].clickerJob === "doctor") {
-                    const clickedUser = await Job.findOne({
-                      roomId,
-                      userNick: votes[i].clickedNick,
-                    });
-                    if (!clickedUser.save) {
+                  for (let i = 0; i < votes.length; i++) {
+                    // 마피아
+                    if (votes[i].clickerJob === "mafia") {
                       await Job.updateOne(
                         { roomId, userNick: votes[i].clickedNick },
-                        { $set: { save: true } }
+                        { $set: { save: false } }
                       );
-                      saved.push(votes[i].clickedNick);
+                      died.push(votes[i].clickedNick);
+                    }
+
+                    // 기자
+                    if (votes[i].clickerJob === "reporter") {
+                      const clickedUser = await Job.findOne({
+                        roomId,
+                        userNick: votes[i].clickedNick,
+                      });
+                      await Job.updateOne(
+                        { roomId, userNick: votes[i].clickerNick },
+                        { $set: { chance: false } }
+                      );
+                      io.to(roomId).emit("reporter", {
+                        clickerJob: clickedUser.userJob,
+                        clickerNick: clickedUser.userNick,
+                      });
+                    }
+
+                    // 저격수
+                    // if (votes[i].clickerJob === "sniper") {
+                    //   const sniper = await Job.findOne({
+                    //     roomId,
+                    //     userId: votes[i].clickerId,
+                    //   });
+                    //   if (sniper.chance) {
+                    //     await Job.updateOne(
+                    //       { roomId, userId: votes[i].clickerId },
+                    //       { $set: { chance: false } }
+                    //     );
+                    //     await Job.updateOne(
+                    //       { roomId, userId: votes[i].clickedId },
+                    //       { $set: { save: false } }
+                    //     );
+                    //     console.log(
+                    //       `${votes[i].clickedId}님이 저격수에 의해 살해당했습니다.`
+                    //     );
+                    //     sniper.push(votes[i].clickedId);
+                    //     socket.emit("sniper", true);
+                    //   } else {
+                    //     socket.emit("sniper", false);
+                    //   }
+                    // }
+                  }
+
+                  // 의사
+                  for (let i = 0; i < votes.length; i++) {
+                    if (votes[i].clickerJob === "doctor") {
+                      const clickedUser = await Job.findOne({
+                        roomId,
+                        userNick: votes[i].clickedNick,
+                      });
+                      if (!clickedUser.save) {
+                        await Job.updateOne(
+                          { roomId, userNick: votes[i].clickedNick },
+                          { $set: { save: true } }
+                        );
+                        saved.push(votes[i].clickedNick);
+                      }
                     }
                   }
-                }
 
-                // 살린 사람 지우기
-                died = died.filter((x) => !saved.includes(x));
+                  // 살린 사람 지우기
+                  died = died.filter((x) => !saved.includes(x));
 
-                const diedPeople = await Job.find({ roomId });
-                const diedPeopleArr = [];
-                const savedPeopleArr = [];
-                for (let i = 0; i < diedPeople.length; i++) {
-                  if (!diedPeople[i].save) {
-                    diedPeopleArr.push(diedPeople[i].userNick);
-                  } else {
-                    savedPeopleArr.push(diedPeople[i].userNick);
-                  }
-                }
-
-                // 밤 투표 결과
-                io.to(socket.roomId).emit("nightVoteResult", {
-                  died,
-                  saved,
-                  diedPeopleArr,
-                  savedPeopleArr,
-                });
-
-                await Vote.deleteMany({ roomId, day: false });
-              }
-
-              // 게임 끝났는지 체크
-              const endGame = await Job.find({ roomId });
-              const result = endGameCheck(endGame);
-
-              let msg = "";
-              if (result) {
-                const endGameUserNick = [];
-                const endGameUserJob = [];
-                for (let i = 0; i < endGame.length; i++) {
-                  endGameUserNick.push(endGame[i].userNick);
-                  endGameUserJob.push(endGame[i].userJob);
-                }
-                if (result === "시민 승") {
-                  msg = "시민이 승리하였습니다.";
-                  // 전적 업데이트
-                  for (let i = 0; i < endGame.length; i++) {
-                    if (endGameUserJob[i] !== "mafia") {
-                      await User.updateOne(
-                        { userNick: endGameUserNick[i] },
-                        { $inc: { userWin: 1 }, $set: { ready: false } }
-                      );
+                  const diedPeople = await Job.find({ roomId });
+                  const diedPeopleArr = [];
+                  const savedPeopleArr = [];
+                  for (let i = 0; i < diedPeople.length; i++) {
+                    if (!diedPeople[i].save) {
+                      diedPeopleArr.push(diedPeople[i].userNick);
                     } else {
-                      await User.updateOne(
-                        { userNick: endGameUserNick[i] },
-                        { $inc: { userLose: 1 }, $set: { ready: false } }
-                      );
+                      savedPeopleArr.push(diedPeople[i].userNick);
                     }
                   }
-                } else if (result === "마피아 승") {
-                  msg = "마피아가 승리하였습니다.";
-                  // 전적 업데이트
-                  for (let i = 0; i < endGame.length; i++) {
-                    if (endGameUserJob[i] === "mafia") {
-                      await User.updateOne(
-                        { userNick: endGameUserNick[i] },
-                        { $inc: { userWin: 1 }, $set: { ready: false } }
-                      );
-                    } else {
-                      await User.updateOne(
-                        { userNick: endGameUserNick[i] },
-                        { $inc: { userLose: 1 }, $set: { ready: false } }
-                      );
-                    }
-                  }
+
+                  // 밤 투표 결과
+                  io.to(socket.roomId).emit("nightVoteResult", {
+                    died,
+                    saved,
+                    diedPeopleArr,
+                    savedPeopleArr,
+                  });
+
+                  await Vote.deleteMany({ roomId, day: false });
                 }
+
+                // 게임 끝났는지 체크
+                const endGame = await Job.find({ roomId });
+                const result = endGameCheck(endGame);
+
+                let msg = "";
+                if (result) {
+                  const endGameUserNick = [];
+                  const endGameUserJob = [];
+                  for (let i = 0; i < endGame.length; i++) {
+                    endGameUserNick.push(endGame[i].userNick);
+                    endGameUserJob.push(endGame[i].userJob);
+                  }
+                  if (result === "시민 승") {
+                    msg = "시민이 승리하였습니다.";
+                    // 전적 업데이트
+                    for (let i = 0; i < endGame.length; i++) {
+                      if (endGameUserJob[i] !== "mafia") {
+                        await User.updateOne(
+                          { userNick: endGameUserNick[i] },
+                          { $inc: { userWin: 1 }, $set: { ready: false } }
+                        );
+                      } else {
+                        await User.updateOne(
+                          { userNick: endGameUserNick[i] },
+                          { $inc: { userLose: 1 }, $set: { ready: false } }
+                        );
+                      }
+                    }
+                  } else if (result === "마피아 승") {
+                    msg = "마피아가 승리하였습니다.";
+                    // 전적 업데이트
+                    for (let i = 0; i < endGame.length; i++) {
+                      if (endGameUserJob[i] === "mafia") {
+                        await User.updateOne(
+                          { userNick: endGameUserNick[i] },
+                          { $inc: { userWin: 1 }, $set: { ready: false } }
+                        );
+                      } else {
+                        await User.updateOne(
+                          { userNick: endGameUserNick[i] },
+                          { $inc: { userLose: 1 }, $set: { ready: false } }
+                        );
+                      }
+                    }
+                  }
+                  clearInterval(countdown);
+                  io.to(socket.roomId).emit("endGame", { msg });
+                  const currentPeople = await Room.findOne({ roomId });
+                  await Room.updateOne(
+                    { roomId },
+                    {
+                      $pullAll: {
+                        currentReadyPeople: currentPeople.currentPeople,
+                      },
+                    }
+                  );
+                  await Job.deleteMany({ roomId });
+                  await Vote.deleteMany({ roomId });
+                }
+              } else {
                 clearInterval(countdown);
                 io.to(socket.roomId).emit("endGame", { msg });
                 const currentPeople = await Room.findOne({ roomId });
@@ -575,7 +591,7 @@ module.exports = (server) => {
               }
             }
           }
-          if (counter < 0) {
+          if (counter <= 0) {
             // 자기소개 시간이 끝났을 때
             first = false;
             counter = 20;
