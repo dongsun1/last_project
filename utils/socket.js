@@ -270,7 +270,7 @@ module.exports = (server) => {
           }
         }
 
-        let counter = 20;
+        let counter = 60;
         let first = true;
 
         // 타이머
@@ -340,7 +340,7 @@ module.exports = (server) => {
 
               if (!room.night) {
                 // 낮 투표 결과
-                counter = 20;
+                counter = 60;
 
                 await Vote.deleteMany({ roomId, day: false });
                 const votes = await Vote.find({ roomId, day: true });
@@ -412,7 +412,7 @@ module.exports = (server) => {
                 }
               } else {
                 // 밤 투표 결과
-                counter = 20;
+                counter = 90;
 
                 await Vote.deleteMany({ roomId, day: true });
                 const votes = await Vote.find({ roomId, day: false });
