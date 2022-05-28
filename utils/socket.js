@@ -569,9 +569,9 @@ module.exports = (server) => {
                     },
                   }
                 );
-                await Vote.deleteMany({ roomId });
-                await Job.deleteMany({ roomId });
               }
+              await Vote.deleteMany({ roomId });
+              await Job.deleteMany({ roomId });
             }
           }
           if (counter < 0) {
