@@ -13,15 +13,13 @@ router.post("/changePw", async (req, res) => {
     res.status(400).send({
       errorMessage: "임시 비밀번호가 틀렸습니다.",
     });
-    return;
   } else if (newPw !== newPwCheck) {
     res.status(400).send({
       errorMessage: "새 비밀번호와 새 비밀번호 확인란이 일치하지 않습니다.",
     });
-    return;
   }
   const hashedPw = await bcrypt.hash(newPw, 10);
-  const updatePw = await User.findOneAndUpdate(
+  await User.findOneAndUpdate(
     { userId: userId },
     { $set: { userPw: hashedPw } },
     { new: true }

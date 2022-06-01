@@ -171,6 +171,7 @@ module.exports = (server) => {
         ready.currentReadyPeople
       );
 
+      // 모든 사람이 ready를 했을 때
       if (readyResult) {
         socket.emit("ready", true);
         await Room.updateOne({ roomId }, { $set: { start: true } });
@@ -242,9 +243,6 @@ module.exports = (server) => {
               break;
             case 5:
               playerJob.push("reporter");
-              break;
-            case 6:
-              playerJob.push("sniper");
               break;
           }
         }
@@ -419,7 +417,6 @@ module.exports = (server) => {
 
                   let died = [];
                   let saved = [];
-                  let sniper = [];
 
                   for (let i = 0; i < votes.length; i++) {
                     // 마피아
@@ -446,31 +443,6 @@ module.exports = (server) => {
                         clickerNick: clickedUser.userNick,
                       });
                     }
-
-                    // 저격수
-                    // if (votes[i].clickerJob === "sniper") {
-                    //   const sniper = await Job.findOne({
-                    //     roomId,
-                    //     userId: votes[i].clickerId,
-                    //   });
-                    //   if (sniper.chance) {
-                    //     await Job.updateOne(
-                    //       { roomId, userId: votes[i].clickerId },
-                    //       { $set: { chance: false } }
-                    //     );
-                    //     await Job.updateOne(
-                    //       { roomId, userId: votes[i].clickedId },
-                    //       { $set: { save: false } }
-                    //     );
-                    //     console.log(
-                    //       `${votes[i].clickedId}님이 저격수에 의해 살해당했습니다.`
-                    //     );
-                    //     sniper.push(votes[i].clickedId);
-                    //     socket.emit("sniper", true);
-                    //   } else {
-                    //     socket.emit("sniper", false);
-                    //   }
-                    // }
                   }
 
                   // 의사
@@ -560,6 +532,7 @@ module.exports = (server) => {
                       }
                     }
                   }
+                  // 타이머 끝내기
                   clearInterval(countdown);
                   io.to(socket.roomId).emit("endGame", { msg });
                   const currentPeople = await Room.findOne({ roomId });
@@ -575,6 +548,7 @@ module.exports = (server) => {
                   await Vote.deleteMany({ roomId });
                 }
               } else {
+                // 방이 없을 때
                 clearInterval(countdown);
                 io.to(socket.roomId).emit("endGame", { msg });
                 const currentPeople = await Room.findOne({ roomId });
@@ -622,6 +596,7 @@ module.exports = (server) => {
         userSocketId: socket.id,
       });
 
+      // 투표가 있을 때 업데이트
       if (exitVote) {
         await Vote.updateOne(
           {

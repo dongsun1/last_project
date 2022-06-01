@@ -19,7 +19,7 @@ router.post("/friendAdd", authMiddleWare, async (req, res) => {
     });
     return;
   } else {
-    var msg = "";
+    let msg = "";
     const existFriend = await User.find(
       { userId: loginUser },
       { friendList: { $elemMatch: { userId: friendUserId } } }
@@ -29,9 +29,8 @@ router.post("/friendAdd", authMiddleWare, async (req, res) => {
       res.send({
         msg: "이미 추가된 친구입니다.",
       });
-      return;
     } else {
-      const friendAdd = await User.updateOne(
+      await User.updateOne(
         { userId: loginUser },
         { $push: { friendList: { userId: friendUserId } } }
       );
@@ -39,10 +38,8 @@ router.post("/friendAdd", authMiddleWare, async (req, res) => {
     }
   }
   const info = await User.find({ userId: loginUser });
-  const friendList = info[0].friendList;
-  res.send({
-    msg,
-  });
+  info[0].friendList;
+  res.send({ msg });
 });
 
 //친구 삭제

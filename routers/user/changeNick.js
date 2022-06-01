@@ -17,17 +17,14 @@ router.post("/changeNick", authMiddleware, async (req, res) => {
     res.status(400).send({
       errorMessage: "닉네임을 입력하세요.",
     });
-    return;
   } else if (!userNickReg.test(changeNick)) {
     res.status(400).send({
       errorMessage: "닉네임은 2~15자, 한글,영문 및 숫자만 가능합니다.",
     });
-    return;
   } else if (existUsers) {
     res.status(400).send({
       errorMessage: "이미 가입된 닉네임 입니다.",
     });
-    return;
   }
 
   const changeUserNick = await User.findOneAndUpdate(

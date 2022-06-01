@@ -72,7 +72,7 @@ router.post("/findPw", async (req, res) => {
     transporter.close();
   });
   const hashedPw = await bcrypt.hash(randomPassword, 10);
-  const changePw = await User.findOneAndUpdate(
+  await User.findOneAndUpdate(
     { userId: userId },
     { $set: { userPw: hashedPw } },
     { new: true }
