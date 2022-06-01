@@ -550,7 +550,6 @@ module.exports = (server) => {
               } else {
                 // 방이 없을 때
                 clearInterval(countdown);
-                io.to(socket.roomId).emit("endGame", { msg });
                 const currentPeople = await Room.findOne({ roomId });
                 await Room.updateOne(
                   { roomId },
@@ -577,8 +576,7 @@ module.exports = (server) => {
       } else {
         const ready = await Room.findOne({ roomId });
 
-        const notReadyId = [];
-        notReadyId = ready.currentPeople.filter(
+        const notReadyId = ready.currentPeople.filter(
           (x) => !ready.currentReadyPeople.includes(x)
         );
 
@@ -592,7 +590,7 @@ module.exports = (server) => {
       const day = await Room.findOne({ roomId });
 
       const exitVote = await Vote.findOne({
-        roomId: socket.roomId,
+        roomId,
         userSocketId: socket.id,
       });
 
@@ -600,14 +598,14 @@ module.exports = (server) => {
       if (exitVote) {
         await Vote.updateOne(
           {
-            roomId: socket.roomId,
+            roomId,
             userSocketId: socket.id,
           },
           { $set: { clickerNick: data.clickerId, clickedNick: data.clickedId } }
         );
       } else {
         await Vote.create({
-          roomId: socket.roomId,
+          roomId,
           userSocketId: socket.id,
           clickerJob: data.clickerJob,
           clickerNick: data.clickerId,
@@ -626,7 +624,7 @@ module.exports = (server) => {
 
         if (day.night && !chance) {
           await Vote.deleteOne({
-            roomId: socket.roomId,
+            roomId,
             userSocketId: socket.id,
             clickerJob: data.clickerJob,
             clickerNick: data.clickerId,

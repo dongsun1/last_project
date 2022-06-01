@@ -22,7 +22,7 @@ const voteSchema = mongoose.Schema({
   },
   day: {
     type: Boolean,
-    required: true,
+    default: true,
   },
 });
 
