@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 
 const kakao = {
   clientid: `${process.env.CLIENTID}`, //REST API
-  redirectUri: "http://localhost:3000/main",
+  redirectUri: "https://www.mafiyang.com/main",
 };
 // kakao login page URL
 router.get("/kakaoLogin", (req, res) => {
@@ -18,7 +18,6 @@ router.get("/kakaoLogin", (req, res) => {
 // kakao register
 router.get("/main", async (req, res) => {
   const { code } = req.query;
-  // console.log('code-->' , code);
   const options = {
     url: "https://kauth.kakao.com/oauth/token",
     method: "POST",
@@ -34,7 +33,6 @@ router.get("/main", async (req, res) => {
     json: true,
   };
   const kakaotoken = await rp(options);
-  //    console.log('token', token)
   const options1 = {
     url: "https://kapi.kakao.com/v2/user/me",
     method: "GET",
@@ -45,31 +43,23 @@ router.get("/main", async (req, res) => {
     json: true,
   };
   const userInfo = await rp(options1);
-  // console.log('userInfo->', userInfo);
   const userId = userInfo.id;
   const userNick = userInfo.kakao_account.profile.nickname;
-  // console.log('userId-->',userId);
-  // console.log('userNick-->',userNick);
   const existUser = await User.find({ userId });
-  console.log("existUser-->", existUser);
 
   if (!existUser.length) {
     const from = "kakao";
     const user = new User({ userId, userNick, from });
-    console.log("user-->", user);
     await user.save();
   }
 
   const loginUser = await User.find({ userId });
-  console.log("loginUser-->", loginUser);
-  const token = jwt.sign({ userId: loginUser.userId }, `${process.env.KEY}`);
-  console.log("kakaotoken-->", token);
+  const token = jwt.sign({ userId: loginUser[0].userId }, `${process.env.KEY}`);
   res.status(200).send({
     token,
     userId,
     userNick,
   });
-  console.log("User-->", token, userId, userNick);
 });
 
 module.exports = router;

@@ -2,14 +2,14 @@ const mongoose = require("mongoose");
 
 const jobSchema = mongoose.Schema({
   roomId: {
-    type: Number,
+    type: String,
     required: true,
   },
   userSocketId: {
     type: String,
     required: true,
   },
-  userId: {
+  userNick: {
     type: String,
     required: true,
   },
@@ -21,8 +21,13 @@ const jobSchema = mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  AI: {
+    type: Boolean,
+    default: false,
+  },
   chance: {
     type: Boolean,
+    default: true,
   },
 });
 

@@ -47,7 +47,6 @@ app_low.use((req, res, next) => {
     next();
   } else {
     const to = `https://${req.hostname}:${httpsPort}${req.url}`;
-    console.log(to);
     res.redirect(to);
   }
 });
@@ -61,6 +60,9 @@ const changePwRouter = require("./routers/user/changePw");
 const friendListRouter = require("./routers/user/friendList");
 const naverRouter = require("./routers/user/naverLogin");
 const googleRouter = require("./routers/user/googleLogin");
+const profileRouter = require("./routers/user/profile");
+const changeNickRouter = require("./routers/user/changeNick");
+const gameRecordRouter = require("./routers/user/gameRecord");
 
 app.use(cors());
 app.use(helmet());
@@ -84,6 +86,9 @@ app.use("/user", [
   findPwRouter,
   changePwRouter,
   friendListRouter,
+  profileRouter,
+  changeNickRouter,
+  gameRecordRouter,
 ]);
 
 app.use("", [kakaoRouter, naverRouter, googleRouter]);
@@ -97,12 +102,6 @@ app.get(
     );
   }
 );
-
-// social login -> login test
-app.get("/", (req, res) => {
-  console.log("main");
-  res.sendFile(__dirname + "/index.html");
-});
 
 const httpServer = http.createServer(app_low);
 const httpsServer = https.createServer(credentials, app);

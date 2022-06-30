@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const roomSchema = mongoose.Schema({
   roomId: {
-    type: Number,
+    type: String,
     required: true,
     unique: true,
   },
@@ -29,13 +29,13 @@ const roomSchema = mongoose.Schema({
     type: Array,
     default: [],
   },
+  currentReadyPeople: {
+    type: Array,
+    default: [],
+  },
   start: {
     type: Boolean,
     default: false,
-  },
-  voteList: {
-    type: Array,
-    default: [],
   },
   night: {
     type: Boolean,

@@ -16,7 +16,8 @@ const userSchema = mongoose.Schema({
     type: String,
   },
   userProfile: {
-    type: String,
+    type: Number,
+    default: 0,
   },
   userWin: {
     type: Number,
@@ -29,8 +30,11 @@ const userSchema = mongoose.Schema({
   from: {
     type: String,
   },
-  friendList: [],
-  ready: {
+  friendList: {
+    type: Array,
+    default: [],
+  },
+  login: {
     type: Boolean,
     default: false,
   },
