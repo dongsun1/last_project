@@ -103,6 +103,10 @@ app.get(
   }
 );
 
+app.get("/", (req, res) => {
+  res.send("mafiyang");
+});
+
 const httpServer = http.createServer(app_low);
 const httpsServer = https.createServer(credentials, app);
 SocketIO(httpsServer);
