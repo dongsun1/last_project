@@ -42,14 +42,14 @@ const requestMiddleware = (req, res, next) => {
 };
 
 // 각종 미들웨어
-app_low.use((req, res, next) => {
-  if (req.secure) {
-    next();
-  } else {
-    const to = `https://${req.hostname}:${httpsPort}${req.url}`;
-    res.redirect(to);
-  }
-});
+// app_low.use((req, res, next) => {
+//   if (req.secure) {
+//     next();
+//   } else {
+//     const to = `https://${req.hostname}:${httpsPort}${req.url}`;
+//     res.redirect(to);
+//   }
+// });
 
 // router -> user
 const usersRouter = require("./routers/user/login");
