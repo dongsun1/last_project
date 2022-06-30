@@ -16,14 +16,14 @@ const app = express();
 const httpPort = 80;
 const httpsPort = 443;
 
-const privateKey = fs.readFileSync(__dirname + "/private.key", "utf8");
-const certificate = fs.readFileSync(__dirname + "/certificate.crt", "utf8");
-const ca = fs.readFileSync(__dirname + "/ca_bundle.crt", "utf8");
-const credentials = {
-  key: privateKey,
-  cert: certificate,
-  ca: ca,
-};
+// const privateKey = fs.readFileSync(__dirname + "/private.key", "utf8");
+// const certificate = fs.readFileSync(__dirname + "/certificate.crt", "utf8");
+// const ca = fs.readFileSync(__dirname + "/ca_bundle.crt", "utf8");
+// const credentials = {
+//   key: privateKey,
+//   cert: certificate,
+//   ca: ca,
+// };
 
 connect();
 
@@ -108,14 +108,14 @@ app.get("/", (req, res) => {
 });
 
 const httpServer = http.createServer(app_low);
-const httpsServer = https.createServer(credentials, app);
-SocketIO(httpsServer);
+// const httpsServer = https.createServer(credentials, app);
+// SocketIO(httpsServer);
 
 // 서버 열기
 httpServer.listen(httpPort, () => {
   winston.info(`${httpPort}, "포트로 서버가 켜졌어요!`);
 });
 
-httpsServer.listen(httpsPort, () => {
-  winston.info(`${httpsPort}, "포트로 서버가 켜졌어요!`);
-});
+// httpsServer.listen(httpsPort, () => {
+//   winston.info(`${httpsPort}, "포트로 서버가 켜졌어요!`);
+// });
