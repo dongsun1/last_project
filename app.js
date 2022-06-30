@@ -94,11 +94,11 @@ app.use("/user", [
 app.use("", [kakaoRouter, naverRouter, googleRouter]);
 
 app.get(
-  "/.well-known/pki-validation/E7D24EFFA0EC789C14F953DF66984336.txt",
+  "/.well-known/pki-validation/B0692B712E7D6F4296FC04DAE76C476A.txt",
   (req, res) => {
     res.sendFile(
       __dirname +
-        "/.well-known/pki-validation/E7D24EFFA0EC789C14F953DF66984336.txt"
+        "/.well-known/pki-validation/B0692B712E7D6F4296FC04DAE76C476A.txt"
     );
   }
 );
